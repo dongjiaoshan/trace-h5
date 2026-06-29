@@ -1,7 +1,7 @@
 # trace-h5 — 东角山追溯码扫码结果页（独立轻量 H5）
 
 C 端顾客扫码落地页，从 plus-ui(admin) 拆出的独立静态前端工程。独立域名 `trace.dongjiaoshan.com`，
-不加载整个 admin SPA，加载快。
+不加载整个 admin SPA，加载快
 
 - 技术栈：Vite + Vue3 + TS + vue-router（history 模式）+ axios。**不引 Element Plus / Pinia / i18n**（单语中文 C 端页，保持轻量）。
 - 路由：`/trace/:type/:code`（`type` = `pork` | `veg` | `grow` | `cert` | `plot-records`）。
