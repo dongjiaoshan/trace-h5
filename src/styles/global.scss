@@ -1,0 +1,36 @@
+/* 全局重置 + 容器（替代 admin 的整套 reset，仅保留追溯页所需） */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #303133;
+  background: #f4f6f5;
+}
+img {
+  border: 0;
+}
+
+/* 简易图片预览遮罩 */
+.img-preview-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.img-preview-mask img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

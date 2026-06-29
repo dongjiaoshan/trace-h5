@@ -1,0 +1,31 @@
+{
+  "name": "dongjiaoshan-trace-h5",
+  "version": "1.0.0",
+  "description": "东角山追溯码扫码结果页（独立轻量 H5，trace.dongjiaoshan.com）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite serve --mode development",
+    "build:prod": "vue-tsc -b && vite build --mode production",
+    "build:staging": "vue-tsc -b && vite build --mode staging",
+    "build:dev": "vue-tsc -b && vite build --mode development",
+    "preview": "vite preview",
+    "type-check": "vue-tsc -b --noEmit"
+  },
+  "dependencies": {
+    "axios": "1.13.6",
+    "vue": "3.5.30",
+    "vue-router": "5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "6.0.4",
+    "sass": "1.98.0",
+    "typescript": "~5.9.3",
+    "vite": "7.3.2",
+    "vue-tsc": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=20.15.0"
+  }
+}

@@ -1,0 +1,23 @@
+.DS_Store
+.history
+node_modules/
+dist/
+*.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+**/*.log
+
+# Editor
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 锁文件由 CI/本地生成
+package-lock.json
+yarn.lock
