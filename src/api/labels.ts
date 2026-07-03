@@ -42,6 +42,7 @@ const FARM_WORK_TYPE_LABELS: Record<string, string> = {
   pruning: '整枝绑蔓',
   rotation: '退茬',
   disaster: '灾害损失',
+  harvest: '采摘',
   harvest_activity: '采摘活动'
 };
 
