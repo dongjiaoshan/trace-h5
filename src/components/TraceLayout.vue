@@ -91,17 +91,19 @@ const bannerStyle = computed(() => (props.cover ? { backgroundImage: `url(${prop
 .tl--pork,
 .tl--veg {
   min-height: 100vh;
-  background: #fff;
 }
 .tl--pork {
+  background: #fff;
   --tl-hero: linear-gradient(155deg, #7a472f 0%, #5a3020 100%);
   --tl-patt: rgba(233, 200, 162, 0.22);
   --tl-trust-ico: #7a4531;
 }
+/* veg 新设计（追溯码27(2)）：深绿页底 + 白卡；信任条内联描边、图标浅色 */
 .tl--veg {
+  background: #15382a;
   --tl-hero: linear-gradient(155deg, #2a6247 0%, #153c2b 100%);
   --tl-patt: rgba(206, 230, 211, 0.2);
-  --tl-trust-ico: #2f7c44;
+  --tl-trust-ico: #cdecd6;
 }
 
 .tl-hero {
@@ -174,6 +176,26 @@ const bannerStyle = computed(() => (props.cover ? { backgroundImage: `url(${prop
 
 .tl-sheet {
   padding: 16px 18px 28px;
+}
+
+/* veg 新设计覆盖：信任条内联描边（深绿上）+ 内容区改白卡纵向堆叠 */
+.tl--veg .tl-trust {
+  margin: 14px 14px 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: none;
+}
+.tl--veg .tl-trust__item {
+  color: #eaf5ee;
+}
+.tl--veg .tl-trust__div {
+  background: rgba(255, 255, 255, 0.22);
+}
+.tl--veg .tl-sheet {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* ===== 兜底 banner 壳（下钻页，沿用原样式） ===== */
