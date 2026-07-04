@@ -131,6 +131,8 @@ export interface TraceStoreVo {
   name?: string;
   /** 门店地址 */
   address?: string;
+  /** 门店配图 URL（后端由 image_oss_id 解析；无图为空，前端默认图兜底） */
+  imageUrl?: string;
 }
 
 /** 作物信息块（veg 专属）。 */

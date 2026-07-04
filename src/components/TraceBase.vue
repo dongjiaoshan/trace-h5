@@ -131,5 +131,6 @@ const features = [
   font-size: 12px;
   line-height: 1.5;
   padding: 10px 12px 12px;
+  text-align: center;
 }
 </style>

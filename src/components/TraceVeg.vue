@@ -8,7 +8,7 @@
         <div class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product?.name || crop?.name }}</span></div>
         <div v-if="crop?.variety" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ crop.variety }}</span></div>
         <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">规格：</span><span>{{ product.spec }}</span></div>
-        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">重量：</span><span>{{ product.weight }} kg</span></div>
+        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">重量：</span><span>{{ weightDisplay }}</span></div>
         <div class="tr-kv"><span class="tr-kv__k">编码：</span><span class="tr-kv__code">{{ product?.produceCode || code }}</span></div>
         <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
       </div>
@@ -39,7 +39,7 @@
           </span>
           <div class="v-tl__body">
             <div class="v-tl__head">
-              <span class="v-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="node.weight" class="v-tl__wt"> · {{ node.weight }}kg</span></span>
+              <span class="v-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
               <span v-if="node.traceTime" class="v-tl__time">{{ node.traceTime }}</span>
             </div>
             <div v-if="node.operatorName" class="v-tl__op">{{ node.operatorName }}</div>
@@ -57,8 +57,8 @@
       <img class="v-entry__thumb" :src="thumbWeeding" alt="" />
     </div>
 
-    <!-- 有机认证（有证书才显；证书图内联展示） -->
-    <div v-if="certImages.length" class="v-card v-cert">
+    <!-- 有机认证（有证书即显；有证书图展示图，无图展示证书信息 · row149） -->
+    <div v-if="organicCerts.length" class="v-card v-cert">
       <div class="v-cert__head">
         <span class="v-cert__badge">
           <svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="9" fill="#2f7c44" /><path d="M6 10.2 l2.6 2.6 5.2-5.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -68,12 +68,20 @@
           <div class="v-cert__sub">已通过有机产品认证，请放心使用</div>
         </div>
       </div>
-      <img v-for="(img, i) in certImages" :key="i" class="v-cert__img" :src="img" alt="有机认证证书" />
+      <div v-for="(cert, i) in organicCerts" :key="i" class="v-cert__item">
+        <img v-if="cert.imageUrl" class="v-cert__img" :src="cert.imageUrl" alt="有机认证证书" />
+        <div class="v-cert__meta">
+          <div v-if="cert.issuer" class="tr-kv"><span class="tr-kv__k">认证机构：</span><span>{{ cert.issuer }}</span></div>
+          <div v-if="cert.certNo" class="tr-kv"><span class="tr-kv__k">证书编号：</span><span>{{ cert.certNo }}</span></div>
+          <div v-if="cert.validTo" class="tr-kv"><span class="tr-kv__k">有效期至：</span><span>{{ cert.validTo }}</span></div>
+        </div>
+      </div>
     </div>
 
     <!-- 销售门店 -->
     <div v-if="showStore" class="v-card">
       <TraceSectionTitle title="销售门店" />
+      <img class="v-store__img" :src="storeImage" alt="门店" />
       <div class="v-store">
         <div v-if="store?.name" class="v-store__row">
           <svg class="v-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>
@@ -81,7 +89,7 @@
         </div>
         <div v-if="store?.address" class="v-store__row">
           <svg class="v-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>
-          <span class="v-store__k">门店地址：</span><span>{{ store.address }}</span>
+          <span class="v-store__k v-store__k--addr">门店地址：</span><span class="v-store__addr">{{ store.address }}</span>
         </div>
       </div>
     </div>
@@ -108,6 +116,7 @@ import IconArrow from './IconArrow.vue';
 import thumbFieldRows from '@/assets/base/thumb-field-rows.jpg';
 import thumbWeeding from '@/assets/base/thumb-weeding.jpg';
 import thumbPanorama from '@/assets/base/thumb-panorama.jpg';
+import storeDefaultImg from '@/assets/base/base-panorama.jpg';
 
 const props = defineProps<{ trace: PublicTraceVo; code: string }>();
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
@@ -137,9 +146,16 @@ const workSummary = computed(() => {
   return parts.length ? parts.join(' / ') : `共 ${recs.length} 条`;
 });
 
-// 有机认证证书图（果蔬 + 地块证，有图才展示）
-const certImages = computed(() => organicCerts.value.map((c) => c.imageUrl).filter((s): s is string => !!s));
 const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
+// 果蔬重量按克展示（后端给 kg 数值）；非纯数字（规格串兜底）原样显示（row146）
+const weightDisplay = computed(() => {
+  const w = product.value?.weight;
+  if (w == null || w === '') return '';
+  const n = Number(w);
+  return Number.isFinite(n) ? `${Math.round(n * 1000 * 100) / 100} g` : String(w);
+});
+// 门店配图：优先门店自有图（image_oss_id），无则默认基地图兜底（row146）
+const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 </script>
 
 <style lang="scss" scoped>
@@ -323,11 +339,28 @@ const showStore = computed(() => !!store.value && (!!store.value.name || !!store
   display: block;
   border: 1px solid #eef0ef;
 }
-.v-cert__img + .v-cert__img {
-  margin-top: 10px;
+.v-cert__item + .v-cert__item {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eef0ef;
+}
+.v-cert__meta {
+  margin-top: 8px;
+}
+.v-cert__meta .tr-kv {
+  font-size: 13.5px;
+  color: #333;
 }
 
 /* 销售门店 */
+.v-store__img {
+  width: 100%;
+  height: 150px;
+  margin: 8px 0 4px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
 .v-store {
   margin-top: 2px;
 }
@@ -344,5 +377,17 @@ const showStore = computed(() => !!store.value && (!!store.value.name || !!store
 }
 .v-store__k {
   color: #808680;
+}
+/* 门店地址不换行：label 不缩，地址值单行省略号（row146） */
+.v-store__k--addr {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.v-store__addr {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
