@@ -169,8 +169,10 @@ export interface TracePlotRecordVo {
 export interface TraceOrganicCertVo {
   /** 证书类型：crop（果蔬/作物有机证）| plot（地块有机证） */
   certType?: string;
-  /** 证书图可访问 URL（后端解析；无图为 null） */
+  /** 证书图可访问 URL（后端解析；无图为 null）。首张，向后兼容；多图见 imageUrls */
   imageUrl?: string;
+  /** 证书全部图可访问 URL（一证多图，自适应网格全部展示） */
+  imageUrls?: string[];
   /** 颁发机构 */
   issuer?: string;
   /** 证书编号 */
