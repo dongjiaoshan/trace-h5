@@ -29,18 +29,18 @@
       <div class="tl-hero__sub">{{ heroSub }}</div>
     </div>
 
-    <!-- 信任条 -->
+    <!-- 信任条（pork/veg 均走填充徽标；颜色随 --tl-trust-ico 主题：pork 棕 / veg 绿） -->
     <div class="tl-trust">
       <div class="tl-trust__item">
-        <svg class="tl-trust__ico" width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor" /><path d="M6 10.2 l2.6 2.6 5.2-5.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>安全溯源
+        <svg class="tl-trust__ico" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2 L20 5.4 V11 C20 16 16.6 19.6 12 21 C7.4 19.6 4 16 4 11 V5.4 Z" fill="currentColor" /><path d="M8.2 11.7 l2.7 2.7 5-5.3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>安全溯源
       </div>
       <div class="tl-trust__div" />
       <div class="tl-trust__item">
-        <svg class="tl-trust__ico" width="20" height="16" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="1" width="6" height="5" rx="1.4" /><rect x="1" y="12" width="6" height="5" rx="1.4" /><rect x="15" y="12" width="6" height="5" rx="1.4" /><path d="M11 6 V9 M4 12 V9 H18 V12" /></svg>责任可溯
+        <svg class="tl-trust__ico" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2 L20 5.4 V11 C20 16 16.6 19.6 12 21 C7.4 19.6 4 16 4 11 V5.4 Z" fill="currentColor" /><g fill="none" stroke="#fff" stroke-width="1.4"><circle cx="12" cy="7.8" r="1.5" /><circle cx="8.6" cy="13.6" r="1.5" /><circle cx="15.4" cy="13.6" r="1.5" /><path d="M12 9.3 V11.3 M8.6 12.1 V11.3 H15.4 V12.1" stroke-linecap="round" stroke-linejoin="round" /></g></svg>责任可溯
       </div>
       <div class="tl-trust__div" />
       <div class="tl-trust__item">
-        <svg class="tl-trust__ico" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5" /><path d="M13 13 l4.5 4.5" /></svg>质量可查
+        <svg class="tl-trust__ico" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" /><circle cx="10.6" cy="10.6" r="3.4" fill="none" stroke="#fff" stroke-width="1.8" /><path d="M13.2 13.2 l3.2 3.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" /></svg>质量可查
       </div>
     </div>
 
@@ -92,18 +92,19 @@ const bannerStyle = computed(() => (props.cover ? { backgroundImage: `url(${prop
 .tl--veg {
   min-height: 100vh;
 }
+/* pork 新设计（pig2）：暖棕页底 + 白卡；信任条保持白卡（base .tl-trust）+ 深棕盾形徽标 */
 .tl--pork {
-  background: #fff;
+  background: #754835;
   --tl-hero: linear-gradient(155deg, #7a472f 0%, #5a3020 100%);
   --tl-patt: rgba(233, 200, 162, 0.22);
   --tl-trust-ico: #7a4531;
 }
-/* veg 新设计（追溯码27(2)）：深绿页底 + 白卡；信任条内联描边、图标浅色 */
+/* veg 新设计（追溯码27(2)）：深绿页底 + 白卡；信任条保持白卡（base .tl-trust）+ 绿色盾形徽标 */
 .tl--veg {
   background: #15382a;
   --tl-hero: linear-gradient(155deg, #2a6247 0%, #153c2b 100%);
   --tl-patt: rgba(206, 230, 211, 0.2);
-  --tl-trust-ico: #cdecd6;
+  --tl-trust-ico: #2f7c44;
 }
 
 .tl-hero {
@@ -178,20 +179,9 @@ const bannerStyle = computed(() => (props.cover ? { backgroundImage: `url(${prop
   padding: 16px 18px 28px;
 }
 
-/* veg 新设计覆盖：信任条内联描边（深绿上）+ 内容区改白卡纵向堆叠 */
-.tl--veg .tl-trust {
-  margin: 14px 14px 0;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  box-shadow: none;
-}
-.tl--veg .tl-trust__item {
-  color: #eaf5ee;
-}
-.tl--veg .tl-trust__div {
-  background: rgba(255, 255, 255, 0.22);
-}
-.tl--veg .tl-sheet {
+/* 内容区白卡纵向堆叠（pork + veg 共用；信任条两者均走 base 白卡） */
+.tl--veg .tl-sheet,
+.tl--pork .tl-sheet {
   padding: 14px;
   display: flex;
   flex-direction: column;

@@ -10,6 +10,7 @@
         <TraceCert v-else-if="viewType === 'cert'" :trace="trace" :cert-type="certType" />
         <TracePlotRecords v-else-if="viewType === 'plot-records'" :trace="trace" />
         <TraceBase v-else-if="viewType === 'base'" />
+        <TracePorkBase v-else-if="viewType === 'pork-base'" />
         <!-- 兜底：未知 type 按业态原页渲染 -->
         <TracePork v-else-if="trace.codeType === 'pork'" :trace="trace" :code="code" @go="goSub" />
         <TraceVeg v-else :trace="trace" :code="code" @go="goSub" />
@@ -29,6 +30,7 @@ import TraceGrow from '@/components/TraceGrow.vue';
 import TraceCert from '@/components/TraceCert.vue';
 import TracePlotRecords from '@/components/TracePlotRecords.vue';
 import TraceBase from '@/components/TraceBase.vue';
+import TracePorkBase from '@/components/TracePorkBase.vue';
 
 const route = useRoute();
 const router = useRouter();

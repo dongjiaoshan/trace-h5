@@ -1,53 +1,61 @@
 <template>
   <TraceLayout theme="pork">
-    <!-- 照片 -->
-    <div class="tr-photo">
-      <img v-if="product?.imageUrl" :src="product.imageUrl" alt="" />
-      <div v-else class="tr-photo__ph">暂无图</div>
+    <!-- 产品 + 猪只信息 -->
+    <div class="p-card">
+      <!-- 产品 header：缩略图 + KV -->
+      <div class="p-prod">
+        <img v-if="product?.imageUrl" class="p-prod__thumb" :src="product.imageUrl" alt="" />
+        <div class="p-prod__kv">
+          <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
+          <div class="tr-kv"><span class="tr-kv__k">编码：</span><span class="tr-kv__code">{{ product?.produceCode || code }}</span></div>
+          <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">规格：</span><span>{{ product.spec }}</span></div>
+          <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">重量：</span><span>{{ product.weight }}</span></div>
+        </div>
+      </div>
+      <div v-if="product?.description" class="p-desc"><span class="tr-kv__k">产品描述：</span>{{ product.description }}</div>
+
+      <!-- 猪只照片轮播（pig.photoUrl + 生长记录照片；无则隐藏） -->
+      <TraceCarousel v-if="pigImages.length" :images="pigImages" class="p-carousel" />
+
+      <!-- 猪只追溯 -->
+      <TraceSectionTitle title="猪只追溯" />
+      <div v-if="pig?.earNo" class="tr-kv"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
+      <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
+      <div v-if="pig?.breed" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ pigBreedLabel(pig.breed) }}</span></div>
+      <div v-if="pig?.farmName" class="tr-kv"><span class="tr-kv__k">农场：</span><span>{{ pig.farmName }}</span></div>
+      <div v-if="pig?.barnName" class="tr-kv"><span class="tr-kv__k">栋舍：</span><span>{{ pig.barnName }}</span></div>
+      <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
+      <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">日龄：</span><span>{{ pig.ageDays }} 天</span></div>
+      <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
     </div>
 
-    <!-- 猪只追溯（合并产品 + 猪只 KV） -->
-    <TraceSectionTitle title="猪只追溯" />
-    <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
-    <div class="tr-kv"><span class="tr-kv__k">编码：</span><span class="tr-kv__code">{{ product?.produceCode || code }}</span></div>
-    <div v-if="pig?.earNo" class="tr-kv"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
-    <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
-    <div v-if="pig?.breed" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ pigBreedLabel(pig.breed) }}</span></div>
-    <div v-if="pig?.farmName" class="tr-kv"><span class="tr-kv__k">农场：</span><span>{{ pig.farmName }}</span></div>
-    <div v-if="pig?.barnName" class="tr-kv"><span class="tr-kv__k">栋舍：</span><span>{{ pig.barnName }}</span></div>
-    <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
-    <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">日龄：</span><span>{{ pig.ageDays }} 天</span></div>
-    <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
-
-    <div class="tr-hr" />
-
-    <!-- 流程处理时间轴（纵向） -->
-    <TraceSectionTitle title="流程处理时间轴" />
-    <div v-if="timeline.length === 0" class="tr-empty">暂无流程记录</div>
-    <div v-else class="tr-tl">
-      <div v-for="(node, idx) in timeline" :key="idx" class="tr-tl__row">
-        <div class="tr-tl__dot" />
-        <div class="tr-tl__body">
-          <span class="tr-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
-          <span v-if="node.weight" class="tr-tl__wt">{{ node.weight }}kg</span>
-          <span v-if="node.traceTime" class="tr-tl__time">{{ node.traceTime }}</span>
-          <span v-if="node.operatorName" class="tr-tl__op">{{ node.operatorName }}</span>
+    <!-- 流程处理时间轴 -->
+    <div class="p-card">
+      <TraceSectionTitle title="流程处理时间轴" />
+      <div v-if="timeline.length === 0" class="tr-empty">暂无流程记录</div>
+      <div v-else class="p-tl">
+        <div
+          v-for="(node, idx) in timeline"
+          :key="idx"
+          class="p-tl__row"
+          :class="{ 'is-last': idx === timeline.length - 1 }"
+        >
+          <span class="p-tl__icon">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 8 L12 3 L21 8 V17 L12 22 L3 17 Z" /><path d="M3 8 L12 13 L21 8 M12 13 V22" /></svg>
+          </span>
+          <div class="p-tl__body">
+            <div class="p-tl__head">
+              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="node.weight" class="p-tl__wt"> · {{ node.weight }}kg</span></span>
+              <span v-if="node.traceTime" class="p-tl__time">{{ node.traceTime }}</span>
+            </div>
+            <div v-if="node.operatorName" class="p-tl__op">{{ node.operatorName }}</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 生长记录 / 疫苗保健下钻 -->
-    <div v-if="hasGrowOrMed" class="tr-entry" @click="emit('go', 'grow')">
-      <div class="tr-entry__main">
-        <span class="tr-entry__title">生长记录 · 疫苗保健</span>
-        <span class="tr-entry__sub">生长 {{ growthCount }} 次 · 疫苗保健 {{ medicationCount }} 次</span>
-      </div>
-      <span class="tr-entry__arrow"><IconArrow :size="16" /></span>
-    </div>
-
-    <!-- 父系 / 母系（无父母耳号 → 后端返 null → 隐藏） -->
-    <template v-if="showPedigree">
-      <div class="tr-hr" />
+    <!-- 父系 / 母系信息（无父母耳号 → 后端返 null → 隐藏） -->
+    <div v-if="showPedigree" class="p-card">
       <TraceSectionTitle title="父系 / 母系信息" />
       <div class="tr-ped">
         <div v-if="pedigree?.sireEarNo" class="tr-ped__card">
@@ -64,17 +72,38 @@
           <div v-if="pedigree.damParity != null" class="tr-ped__kv"><span class="tr-ped__k">胎次</span><span class="tr-ped__v">第 {{ pedigree.damParity }} 胎</span></div>
         </div>
       </div>
-    </template>
+    </div>
+
+    <!-- 养殖基地（下钻） -->
+    <div class="p-base" @click="emit('go', 'pork-base')">
+      <div class="p-base__main">
+        <div class="p-base__title">养殖基地</div>
+        <div class="p-base__sub">点击查看<IconArrow class="p-base__chev" :size="13" /></div>
+      </div>
+      <img class="p-base__thumb" :src="porkBaseThumb" alt="" />
+    </div>
 
     <!-- 销售门店 -->
-    <template v-if="showStore">
-      <div class="tr-hr" />
+    <div v-if="showStore" class="p-card">
       <TraceSectionTitle title="销售门店" />
-      <div class="tr-store">
-        <div v-if="store?.name" class="tr-store__row"><span class="tr-store__k">门店名称</span><span class="tr-store__v">{{ store.name }}</span></div>
-        <div v-if="store?.address" class="tr-store__row"><span class="tr-store__k">门店地址</span><span class="tr-store__v">{{ store.address }}</span></div>
+      <div class="p-store">
+        <div class="p-store__info">
+          <div v-if="store?.name" class="p-store__block">
+            <div class="p-store__label">
+              <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>门店名称
+            </div>
+            <div class="p-store__val">{{ store.name }}</div>
+          </div>
+          <div v-if="store?.address" class="p-store__block">
+            <div class="p-store__label">
+              <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>门店地址
+            </div>
+            <div class="p-store__val">{{ store.address }}</div>
+          </div>
+        </div>
+        <img class="p-store__img" :src="storeImage" alt="门店" />
       </div>
-    </template>
+    </div>
   </TraceLayout>
 </template>
 
@@ -84,7 +113,10 @@ import type { PublicTraceVo } from '@/api/types';
 import { traceContentLabel, pigSexLabel, pigBreedLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
+import TraceCarousel from './TraceCarousel.vue';
 import IconArrow from './IconArrow.vue';
+import porkBaseThumb from '@/assets/base/pork-base-thumb.jpg';
+import porkStoreDefault from '@/assets/base/pork-store-default.jpg';
 
 const props = defineProps<{ trace: PublicTraceVo; code: string }>();
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
@@ -95,13 +127,204 @@ const pedigree = computed(() => props.trace.pedigree ?? null);
 const timeline = computed(() => props.trace.timeline ?? []);
 const store = computed(() => props.trace.store ?? null);
 
-const growthCount = computed(() => props.trace.growthRecords?.length ?? 0);
-const medicationCount = computed(() => props.trace.medications?.length ?? 0);
-const hasGrowOrMed = computed(() => growthCount.value > 0 || medicationCount.value > 0);
-const showPedigree = computed(() => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo));
+// 猪只照片轮播：pig.photoUrl + 生长记录照片（无则隐藏；product.imageUrl 已作产品缩略图，不重复入轮播）
+const pigImages = computed(() =>
+  [pig.value?.photoUrl, ...(props.trace.growthRecords ?? []).map((g) => g.photoUrl)].filter(
+    (s): s is string => !!s
+  )
+);
+
+const showPedigree = computed(
+  () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
+);
 const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
+// 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底
+const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
 </script>
 
 <style lang="scss" scoped>
 @use '@/styles/trace.scss';
+
+/* 白卡 */
+.p-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 16px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* 产品 header：缩略图 + KV */
+.p-prod {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.p-prod__thumb {
+  flex: 0 0 84px;
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+.p-prod__kv {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.p-desc {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: #333;
+  line-height: 1.6;
+}
+.p-carousel {
+  margin-top: 12px;
+}
+
+/* 纵向时间轴（绿方块图标 + 右对齐棕色时间） */
+.p-tl {
+  padding: 4px 0 2px;
+}
+.p-tl__row {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+.p-tl__row:last-child {
+  padding-bottom: 0;
+}
+.p-tl__row:not(.is-last)::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 34px;
+  bottom: -2px;
+  width: 2px;
+  background: #e2e8e4;
+}
+.p-tl__icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #2f7c44;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.p-tl__body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
+}
+.p-tl__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.p-tl__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2f3a33;
+}
+.p-tl__wt {
+  color: #2f7c44;
+  font-weight: 700;
+}
+.p-tl__time {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  color: #9c5a30;
+  font-variant-numeric: tabular-nums;
+}
+.p-tl__op {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: #909399;
+}
+
+/* 养殖基地入口（浅绿底 · 左文右图） */
+.p-base {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #eef6f0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.p-base__main {
+  flex: 1;
+  min-width: 0;
+}
+.p-base__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #26543a;
+}
+.p-base__sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #2f7c44;
+  display: flex;
+  align-items: center;
+}
+.p-base__chev {
+  margin-left: 3px;
+}
+.p-base__thumb {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+
+/* 销售门店：左文（图标+标签 / 值 堆叠）右图 */
+.p-store {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.p-store__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.p-store__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #808680;
+}
+.p-store__ic {
+  flex: 0 0 auto;
+}
+.p-store__val {
+  margin-top: 3px;
+  padding-left: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2b2b;
+  line-height: 1.5;
+}
+.p-store__img {
+  flex: 0 0 138px;
+  width: 138px;
+  height: 92px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
 </style>
