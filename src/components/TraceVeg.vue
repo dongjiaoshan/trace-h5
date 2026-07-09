@@ -69,7 +69,9 @@
         </div>
       </div>
       <div v-for="(cert, i) in organicCerts" :key="i" class="v-cert__item">
-        <img v-if="cert.imageUrl" class="v-cert__img" :src="cert.imageUrl" alt="有机认证证书" />
+        <div v-if="certImages(cert).length" class="v-cert__imgs">
+          <img v-for="(img, j) in certImages(cert)" :key="j" class="v-cert__img" :src="img" alt="有机认证证书" />
+        </div>
         <div class="v-cert__meta">
           <div v-if="cert.issuer" class="tr-kv"><span class="tr-kv__k">认证机构：</span><span>{{ cert.issuer }}</span></div>
           <div v-if="cert.certNo" class="tr-kv"><span class="tr-kv__k">证书编号：</span><span>{{ cert.certNo }}</span></div>
@@ -127,6 +129,13 @@ const plot = computed(() => props.trace.plot ?? null);
 const timeline = computed(() => props.trace.timeline ?? []);
 const plotRecords = computed(() => props.trace.plotRecords ?? []);
 const organicCerts = computed(() => props.trace.organicCerts ?? []);
+
+// row162/row24：一证多图全展示——优先 imageUrls（多图），回落 imageUrl（旧单图，向后兼容）。
+// 与 TraceCert.vue 同口径：证书配置多张图（crop_image_url 逗号分隔）后端解析成 imageUrls，逐张渲染。
+function certImages(c: { imageUrls?: string[]; imageUrl?: string }): string[] {
+  if (c.imageUrls && c.imageUrls.length) return c.imageUrls;
+  return c.imageUrl ? [c.imageUrl] : [];
+}
 const store = computed(() => props.trace.store ?? null);
 
 // 产品图轮播：目前后端一张产品图（多图时轮播自动生效）
@@ -332,6 +341,12 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
   margin-top: 2px;
   font-size: 12.5px;
   color: #7a9a85;
+}
+/* 一证多图：整证书图纵向堆叠（每张全宽，与单图视觉一致），row24 */
+.v-cert__imgs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .v-cert__img {
   width: 100%;
