@@ -21,7 +21,6 @@
       <TraceSectionTitle title="猪只追溯" />
       <div v-if="pig?.earNo" class="tr-kv"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
       <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
-      <div v-if="pig?.breed" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ pigBreedLabel(pig.breed) }}</span></div>
       <div v-if="pig?.farmName" class="tr-kv"><span class="tr-kv__k">农场：</span><span>{{ pig.farmName }}</span></div>
       <div v-if="pig?.barnName" class="tr-kv"><span class="tr-kv__k">栋舍：</span><span>{{ pig.barnName }}</span></div>
       <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
@@ -61,13 +60,11 @@
         <div v-if="pedigree?.sireEarNo" class="tr-ped__card">
           <span class="tr-ped__head tr-ped__head--sire">父系</span>
           <div class="tr-ped__kv"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.sireEarNo }}</span></div>
-          <div v-if="pedigree.sireBreed" class="tr-ped__kv"><span class="tr-ped__k">品种</span><span class="tr-ped__v">{{ pedigree.sireBreed }}</span></div>
           <div v-if="pedigree.sireAgeDays != null" class="tr-ped__kv"><span class="tr-ped__k">日龄</span><span class="tr-ped__v">{{ pedigree.sireAgeDays }} 天</span></div>
         </div>
         <div v-if="pedigree?.damEarNo" class="tr-ped__card">
           <span class="tr-ped__head tr-ped__head--dam">母系</span>
           <div class="tr-ped__kv"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.damEarNo }}</span></div>
-          <div v-if="pedigree.damBreed" class="tr-ped__kv"><span class="tr-ped__k">品种</span><span class="tr-ped__v">{{ pedigree.damBreed }}</span></div>
           <div v-if="pedigree.damAgeDays != null" class="tr-ped__kv"><span class="tr-ped__k">日龄</span><span class="tr-ped__v">{{ pedigree.damAgeDays }} 天</span></div>
           <div v-if="pedigree.damParity != null" class="tr-ped__kv"><span class="tr-ped__k">胎次</span><span class="tr-ped__v">第 {{ pedigree.damParity }} 胎</span></div>
         </div>
@@ -110,7 +107,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
-import { traceContentLabel, pigSexLabel, pigBreedLabel } from '@/api/labels';
+import { traceContentLabel, pigSexLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
