@@ -342,7 +342,7 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
   font-size: 12.5px;
   color: #7a9a85;
 }
-/* 一证多图：证书图横向并排（多张各占等分、并列一行；单图仍占满宽），row34 */
+/* 一证多图：证书图横向并排 + 统一尺寸（各占等分宽 + 固定纵横比 → 三张同宽同高一样大），row34/row39 */
 .v-cert__imgs {
   display: flex;
   flex-direction: row;
@@ -353,6 +353,9 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
   flex: 1 1 0;
   min-width: 0;
   width: auto;
+  aspect-ratio: 1 / 1.4;
+  object-fit: contain;
+  background: #fafafa;
   border-radius: 10px;
   display: block;
   border: 1px solid #eef0ef;
