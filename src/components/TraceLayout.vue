@@ -29,8 +29,8 @@
       <div class="tl-hero__sub">{{ heroSub }}</div>
     </div>
 
-    <!-- 信任条（pork/veg 均走填充徽标；颜色随 --tl-trust-ico 主题：pork 棕 / veg 绿） -->
-    <div class="tl-trust">
+    <!-- 信任条（pork/veg 均走填充徽标；颜色随 --tl-trust-ico 主题：pork 棕 / veg 绿；下钻页 show-trust=false 只留 hero） -->
+    <div v-if="showTrust" class="tl-trust">
       <div class="tl-trust__item">
         <svg class="tl-trust__ico" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2 L20 5.4 V11 C20 16 16.6 19.6 12 21 C7.4 19.6 4 16 4 11 V5.4 Z" fill="currentColor" /><path d="M8.2 11.7 l2.7 2.7 5-5.3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>安全溯源
       </div>
@@ -66,18 +66,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{
-  /** 业态主题：pork 棕 / veg 绿。传了走新设计壳；不传走 banner 兜底壳（下钻页） */
-  theme?: 'pork' | 'veg';
-  /** hero 主标题（默认「溯源安全，品质保证」） */
-  heroTitle?: string;
-  /** hero 副标题（不传按业态取默认） */
-  heroSubtitle?: string;
-  /** 兜底壳：标题 / 追溯码 / 封面 */
-  title?: string;
-  traceCode?: string;
-  cover?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    /** 业态主题：pork 棕 / veg 绿。传了走新设计壳；不传走 banner 兜底壳（下钻页） */
+    theme?: 'pork' | 'veg';
+    /** hero 主标题（默认「溯源安全，品质保证」） */
+    heroTitle?: string;
+    /** hero 副标题（不传按业态取默认） */
+    heroSubtitle?: string;
+    /** 是否显示信任条（默认 true；下钻页如生长记录只要 hero → false） */
+    showTrust?: boolean;
+    /** 兜底壳：标题 / 追溯码 / 封面 */
+    title?: string;
+    traceCode?: string;
+    cover?: string;
+  }>(),
+  { showTrust: true }
+);
 
 const heroTitle = computed(() => props.heroTitle ?? '溯源安全，品质保证');
 const heroSub = computed(

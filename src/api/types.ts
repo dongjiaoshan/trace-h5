@@ -61,6 +61,10 @@ export interface TracePigVo {
   ageDays?: number;
   /** 出栏日期（Pig 无列，用 marketing 事件时间兜底，可能为 null） */
   marketDate?: string;
+  /** 出生重（kg，源 pig.birth_weight；无为 null） */
+  birthWeight?: string;
+  /** 出栏重（kg，源 marketing.out_weight；无为 null） */
+  marketWeight?: string;
   /** 所属农场名 */
   farmName?: string;
   /** 栋舍名（用生长记录冗余兜底，可能为 null） */

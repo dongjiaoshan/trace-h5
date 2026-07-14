@@ -1,142 +1,142 @@
 <template>
-  <div class="grow-page">
-    <div class="grow-tabs">
-      <button class="grow-tab" :class="{ 'is-active': activeTab === 'growth' }" @click="activeTab = 'growth'">生长记录</button>
-      <button class="grow-tab" :class="{ 'is-active': activeTab === 'medication' }" @click="activeTab = 'medication'">疫苗保健记录</button>
+  <!-- 生长记录详情页（pig2 image2）：pork hero（无信任条）+ 白卡 + 纵向生长时间轴 -->
+  <TraceLayout theme="pork" :show-trust="false">
+    <div class="g-card">
+      <div class="g-title">生长记录</div>
+
+      <div v-if="growthRecords.length === 0" class="tr-empty">暂无生长记录</div>
+      <div v-else class="g-tl">
+        <div
+          v-for="(g, idx) in growthRecords"
+          :key="idx"
+          class="g-tl__row"
+          :class="{ 'is-last': idx === growthRecords.length - 1 }"
+        >
+          <span class="g-tl__dot" />
+          <div class="g-tl__body">
+            <div class="g-tl__head">
+              <span v-if="g.ageDays != null" class="g-tl__age">{{ g.ageDays }} 日龄</span>
+              <span v-if="g.date" class="g-tl__date">{{ g.date }}</span>
+              <span v-if="g.operatorName" class="g-tl__op">{{ g.operatorName }}</span>
+            </div>
+            <div v-if="metricOf(g)" class="g-tl__metric">{{ metricOf(g) }}</div>
+            <img v-if="g.photoUrl" class="g-tl__photo" :src="g.photoUrl" alt="生长记录照片" />
+          </div>
+        </div>
+      </div>
     </div>
-
-    <template v-if="activeTab === 'growth'">
-      <div v-if="growthRecords.length === 0" class="t-empty">暂无生长记录</div>
-      <div v-for="(g, idx) in growthRecords" :key="idx" class="t-card grow-row">
-        <div class="grow-row__head">
-          <div class="t-timeline-dot"></div>
-          <span class="grow-date">{{ g.date }}</span>
-        </div>
-        <div class="grow-metrics">
-          <span v-if="g.ageDays != null">日龄 {{ g.ageDays }} 天</span>
-          <span v-if="g.weight">体重 {{ g.weight }} kg</span>
-          <span v-if="g.backfat">背膘 {{ g.backfat }} mm</span>
-        </div>
-        <div v-if="g.operatorName" class="grow-op">操作人：{{ g.operatorName }}</div>
-        <div v-if="g.photoUrl" class="grow-photo">
-          <PreviewImage :src="g.photoUrl" fit="cover" />
-        </div>
-      </div>
-    </template>
-
-    <template v-else>
-      <div v-if="medications.length === 0" class="t-empty">暂无疫苗保健记录</div>
-      <div v-for="(m, idx) in medications" :key="idx" class="t-card grow-row">
-        <div class="grow-row__head">
-          <div class="t-timeline-dot"></div>
-          <span class="grow-date">{{ m.date }}</span>
-        </div>
-        <div class="med-name-row">
-          <span class="med-type">{{ medicationTypeLabel(m.type) }}</span>
-          <span class="med-name">{{ m.name }}</span>
-        </div>
-        <div class="grow-metrics">
-          <span v-if="m.ageDays != null">日龄 {{ m.ageDays }} 天</span>
-          <span v-if="m.operatorName">操作人 {{ m.operatorName }}</span>
-        </div>
-        <div v-if="m.reason" class="grow-op">原因：{{ m.reason }}</div>
-      </div>
-    </template>
-  </div>
+  </TraceLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import type { PublicTraceVo } from '@/api/types';
-import { medicationTypeLabel } from '@/api/labels';
-import PreviewImage from './PreviewImage.vue';
+import { computed } from 'vue';
+import type { PublicTraceVo, TraceGrowthRecordVo } from '@/api/types';
+import TraceLayout from './TraceLayout.vue';
 
 const props = defineProps<{ trace: PublicTraceVo }>();
 
-const activeTab = ref<'growth' | 'medication'>('growth');
 const growthRecords = computed(() => props.trace.growthRecords ?? []);
-const medications = computed(() => props.trace.medications ?? []);
+
+// 度量：体重（kg）+ 背膘（mm），有则展示，均无则不出行
+function metricOf(g: TraceGrowthRecordVo): string {
+  const parts: string[] = [];
+  if (g.weight) parts.push(`体重 ${g.weight}kg`);
+  if (g.backfat) parts.push(`背膘 ${g.backfat}mm`);
+  return parts.join('　');
+}
 </script>
 
 <style lang="scss" scoped>
 @use '@/styles/trace.scss';
 
-.grow-page {
-  padding: 12px;
+.g-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 16px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
-.grow-tabs {
+.g-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #2b2b2b;
+  letter-spacing: 0.5px;
+  margin-bottom: 18px;
+}
+
+/* 纵向时间轴（棕点 + 连线） */
+.g-tl__row {
+  position: relative;
   display: flex;
-  gap: 8px;
-  border-bottom: 1px solid #e4e7ed;
-  margin-bottom: 12px;
+  gap: 14px;
+  padding-bottom: 22px;
 }
-.grow-tab {
-  appearance: none;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  color: #606266;
-  padding: 10px 4px;
-  margin-bottom: -1px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
+.g-tl__row:last-child {
+  padding-bottom: 0;
 }
-.grow-tab.is-active {
-  color: #2f7c44;
-  border-bottom-color: #2f7c44;
-  font-weight: 600;
+.g-tl__row:not(.is-last)::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 16px;
+  bottom: -2px;
+  width: 2px;
+  background: #e0d0c5;
 }
-.grow-row {
-  margin-bottom: 12px;
+.g-tl__dot {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #7a4531;
+  margin-top: 3px;
+  z-index: 1;
+  box-shadow: 0 0 0 3px #f3e9e2;
 }
-.grow-row__head {
+.g-tl__body {
+  flex: 1;
+  min-width: 0;
+}
+.g-tl__head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
 }
-.grow-date {
-  font-size: 15px;
+.g-tl__age {
+  flex: 0 0 auto;
+  background: #7a4531;
+  color: #fff;
+  font-size: 12px;
   font-weight: 600;
-  color: #303133;
-  font-variant-numeric: tabular-nums;
+  padding: 2px 9px;
+  border-radius: 6px;
 }
-.grow-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+.g-tl__date {
   font-size: 13px;
   color: #606266;
-  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
 }
-.grow-op {
-  font-size: 12px;
-  color: #909399;
-}
-.grow-photo {
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-.med-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.med-type {
-  display: inline-block;
+.g-tl__op {
+  margin-left: auto;
+  flex: 0 0 auto;
   background: #e8f3ec;
   color: #2f7c44;
   font-size: 12px;
   padding: 2px 10px;
   border-radius: 6px;
 }
-.med-name {
-  font-size: 14px;
-  color: #303133;
-  font-weight: 500;
+.g-tl__metric {
+  margin-top: 9px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2f3a33;
+}
+.g-tl__photo {
+  margin-top: 9px;
+  width: 180px;
+  max-width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
 }
 </style>

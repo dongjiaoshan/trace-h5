@@ -17,15 +17,24 @@
       <!-- 猪只照片轮播（pig.photoUrl + 生长记录照片；无则隐藏） -->
       <TraceCarousel v-if="pigImages.length" :images="pigImages" class="p-carousel" />
 
-      <!-- 猪只追溯 -->
+      <!-- 猪只追溯（耳号整行 + 两列 KV） -->
       <TraceSectionTitle title="猪只追溯" />
-      <div v-if="pig?.earNo" class="tr-kv"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
-      <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
-      <div v-if="pig?.farmName" class="tr-kv"><span class="tr-kv__k">农场：</span><span>{{ pig.farmName }}</span></div>
-      <div v-if="pig?.barnName" class="tr-kv"><span class="tr-kv__k">栋舍：</span><span>{{ pig.barnName }}</span></div>
-      <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
-      <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">日龄：</span><span>{{ pig.ageDays }} 天</span></div>
-      <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
+      <div v-if="pig?.earNo" class="p-pig__ear"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
+      <div class="p-pig__cols">
+        <div v-if="pig?.sex || pig?.birthDate || pig?.marketDate" class="p-pig__col">
+          <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
+          <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生日：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
+          <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏日：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
+        </div>
+        <div
+          v-if="pig?.ageDays != null || pig?.birthWeight || pig?.marketWeight"
+          class="p-pig__col p-pig__col--r"
+        >
+          <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">日龄：</span><span>{{ pig.ageDays }} 天</span></div>
+          <div v-if="pig?.birthWeight" class="tr-kv"><span class="tr-kv__k">出生重：</span><span>{{ pig.birthWeight }}kg</span></div>
+          <div v-if="pig?.marketWeight" class="tr-kv"><span class="tr-kv__k">出栏重：</span><span>{{ pig.marketWeight }}kg</span></div>
+        </div>
+      </div>
     </div>
 
     <!-- 流程处理时间轴 -->
@@ -51,6 +60,16 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 生长记录（下钻；始终显示，无数据时详情页显示「暂无生长记录」） -->
+    <div class="p-grow" @click="emit('go', 'grow')">
+      <img class="p-grow__thumb" :src="growThumb" alt="" />
+      <div class="p-grow__main">
+        <div class="p-grow__title">生长记录</div>
+        <div class="p-grow__sub">背膘测量：{{ backfatCount }} 次　生长记录：{{ growthRecords.length }} 次</div>
+      </div>
+      <span class="p-grow__chev"><IconArrow :size="16" /></span>
     </div>
 
     <!-- 父系 / 母系信息（无父母耳号 → 后端返 null → 隐藏） -->
@@ -131,6 +150,13 @@ const pigImages = computed(() =>
   )
 );
 
+// 生长记录下钻入口：背膘测量次数（有背膘值的记录数）+ 生长记录总数；缩略图取首张生长照片，无则默认猪图
+const growthRecords = computed(() => props.trace.growthRecords ?? []);
+const backfatCount = computed(() => growthRecords.value.filter((g) => !!g.backfat).length);
+const growThumb = computed(
+  () => growthRecords.value.find((g) => !!g.photoUrl)?.photoUrl || porkBaseThumb
+);
+
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
 );
@@ -179,6 +205,71 @@ const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
 }
 .p-carousel {
   margin-top: 12px;
+}
+
+/* 猪只追溯：耳号整行 + 两列 KV（左列含出栏日 datetime，右列短值，两端对齐） */
+.p-pig__ear {
+  margin-bottom: 6px;
+}
+/* 左列含出栏日 datetime（flex 撑开保证单行不折），右列短值贴右 */
+.p-pig__cols {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.p-pig__col {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.p-pig__col:first-child {
+  flex: 1 1 auto;
+}
+.p-pig__col--r {
+  flex: 0 0 auto;
+}
+.p-pig__cols .tr-kv {
+  font-size: 13.5px;
+}
+
+/* 生长记录下钻入口（左图右文 + 箭头） */
+.p-grow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.p-grow__thumb {
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+.p-grow__main {
+  flex: 1;
+  min-width: 0;
+}
+.p-grow__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+.p-grow__sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #2f7c44;
+}
+.p-grow__chev {
+  flex: 0 0 auto;
+  display: flex;
+  color: #c0c4cc;
 }
 
 /* 纵向时间轴（绿方块图标 + 右对齐棕色时间） */
