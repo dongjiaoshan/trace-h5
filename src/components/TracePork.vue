@@ -99,25 +99,19 @@
       <img class="p-base__thumb" :src="porkBaseThumb" alt="" />
     </div>
 
-    <!-- 销售门店 -->
+    <!-- 销售门店（row61：样式与果蔬追溯一致——上图片，下门店名称/地址） -->
     <div v-if="showStore" class="p-card">
       <TraceSectionTitle title="销售门店" />
+      <img class="p-store__img" :src="storeImage" alt="门店" />
       <div class="p-store">
-        <div class="p-store__info">
-          <div v-if="store?.name" class="p-store__block">
-            <div class="p-store__label">
-              <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>门店名称
-            </div>
-            <div class="p-store__val">{{ store.name }}</div>
-          </div>
-          <div v-if="store?.address" class="p-store__block">
-            <div class="p-store__label">
-              <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>门店地址
-            </div>
-            <div class="p-store__val">{{ store.address }}</div>
-          </div>
+        <div v-if="store?.name" class="p-store__row">
+          <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>
+          <span class="p-store__k">门店名称：</span><span>{{ store.name }}</span>
         </div>
-        <img class="p-store__img" :src="storeImage" alt="门店" />
+        <div v-if="store?.address" class="p-store__row">
+          <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>
+          <span class="p-store__k p-store__k--addr">门店地址：</span><span class="p-store__addr">{{ store.address }}</span>
+        </div>
       </div>
     </div>
   </TraceLayout>
@@ -376,43 +370,42 @@ const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
   display: block;
 }
 
-/* 销售门店：左文（图标+标签 / 值 堆叠）右图 */
+/* 销售门店（row61：与果蔬追溯一致——上图片，下门店名称/地址） */
+.p-store__img {
+  width: 100%;
+  height: 150px;
+  margin: 8px 0 4px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
 .p-store {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+  margin-top: 2px;
 }
-.p-store__info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.p-store__label {
+.p-store__row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #808680;
+  gap: 7px;
+  padding: 5px 0;
+  font-size: 14px;
+  color: #333;
 }
 .p-store__ic {
   flex: 0 0 auto;
 }
-.p-store__val {
-  margin-top: 3px;
-  padding-left: 22px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #2b2b2b;
-  line-height: 1.5;
+.p-store__k {
+  color: #808680;
 }
-.p-store__img {
-  flex: 0 0 138px;
-  width: 138px;
-  height: 92px;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block;
+/* 门店地址不换行：label 不缩，地址值单行省略号 */
+.p-store__k--addr {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.p-store__addr {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

@@ -5,21 +5,22 @@
  * 前端做中文展示。未知码兜底返原码值，避免空白。
  */
 
-/** 时间轴节点类型码 → 中文。 */
+/** 时间轴节点类型码 → 中文（猪肉 7 节点 row61 / 果蔬 5 节点 row62）。 */
 const TRACE_CONTENT_LABELS: Record<string, string> = {
-  marketing: '营销出栏',
+  marketing: '出栏',
   singe: '屠宰完成',
   white_bar_in: '白条入库',
-  white_bar_pick: '白条出库(领用)',
+  white_bar_pick: '白条领用',
+  white_bar_cut: '白条分割',
   slaughter: '屠宰',
   acid: '排酸',
-  in_stock: '入库',
-  ship: '发货',
+  in_stock: '产品生产',
+  ship: '冷链发货',
   arrival: '到店',
-  sowing: '播种',
+  sowing: '种植',
   harvest: '采摘',
   veg_handle: '毛菜处理',
-  pack: '打包'
+  pack: '产品生产'
 };
 
 /** 用药类型码 → 中文。 */
