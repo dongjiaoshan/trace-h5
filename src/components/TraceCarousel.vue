@@ -3,11 +3,13 @@
   <div class="tc">
     <div ref="vp" class="tc__vp" @scroll="onScroll">
       <template v-if="images.length">
-        <div v-for="(src, i) in images" :key="i" class="tc__slide">
-          <img :src="src" alt="" />
+        <div v-for="(src, i) in images" :key="i" class="tc__slide" :style="{ aspectRatio: ratio }">
+          <img :src="src" alt="" :style="{ objectFit: fit }" />
         </div>
       </template>
-      <div v-else class="tc__slide">
+      <!-- 无图占位不吃 ratio：ratio 是为「让产品设计稿方图铺满」设的，占位是一块纯灰底，
+           跟着变方只会让灰面积白白变大（无图产品比有图的还多），固定用扁卡位。 -->
+      <div v-else class="tc__slide tc__slide--ph">
         <div class="tc__ph">暂无图</div>
       </div>
     </div>
@@ -24,7 +26,22 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const props = defineProps<{ images: string[] }>();
+const props = withDefaults(
+  defineProps<{
+    images: string[];
+    /**
+     * 图片填充方式。默认 `cover`（等比裁切，猪只照片等实拍图用）。
+     * `contain` 配合方形卡位给产品图用：整张图完整可见、零形变。
+     */
+    fit?: 'cover' | 'fill' | 'contain';
+    /**
+     * 卡位宽高比（CSS aspect-ratio 值）。默认 `16 / 10` 适合实拍横图。
+     * 产品图传 `1 / 1`：产品配图绝大多数是 1:1 设计稿，方形卡位下正好铺满不留边。
+     */
+    ratio?: string;
+  }>(),
+  { fit: 'cover', ratio: '16 / 10' }
+);
 const vp = ref<HTMLElement | null>(null);
 const idx = ref(0);
 
@@ -60,14 +77,15 @@ function go(dir: number) {
 .tc__slide {
   flex: 0 0 100%;
   scroll-snap-align: center;
+  background: #f0f2f1; /* aspect-ratio 由 ratio prop 内联控制 */
+}
+.tc__slide--ph {
   aspect-ratio: 16 / 10;
-  background: #f0f2f1;
 }
 .tc__slide img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  display: block; /* object-fit 由 fit prop 内联控制 */
 }
 .tc__ph {
   width: 100%;

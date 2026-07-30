@@ -3,13 +3,16 @@
     <!-- 产品信息 -->
     <div class="v-card">
       <TraceSectionTitle title="产品信息" />
-      <TraceCarousel :images="productImages" />
+      <!-- 产品图用方形卡位 + fill（客户：图片显示不全，填充上去、可以有一些拉伸）：
+           产品配图 85% 是 1:1 设计稿（带品牌 logo / 认证角标），方卡位下铺满且零形变零裁切；
+           少数非方实拍图靠拉伸填满、整图仍完整可见（最坏约 1.57x，远低于 16:10 卡位的 2.5x）。 -->
+      <TraceCarousel :images="productImages" ratio="1 / 1" fit="fill" />
       <div class="v-kvs">
         <div class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product?.name || crop?.name }}</span></div>
         <div v-if="crop?.variety" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ crop.variety }}</span></div>
-        <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">规格：</span><span>{{ product.spec }}</span></div>
-        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">重量：</span><span>{{ weightDisplay }}</span></div>
-        <div class="tr-kv"><span class="tr-kv__k">编码：</span><span class="tr-kv__code">{{ product?.produceCode || code }}</span></div>
+        <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
+        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ weightDisplay }}</span></div>
+        <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
         <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
       </div>
       <!-- 地块 mini-row -->
@@ -23,9 +26,9 @@
       </div>
     </div>
 
-    <!-- 流程时间轴 -->
+    <!-- 品质溯源时间线 -->
     <div class="v-card">
-      <TraceSectionTitle title="流程时间轴" />
+      <TraceSectionTitle title="品质溯源时间线" />
       <div v-if="timeline.length === 0" class="tr-empty">暂无流程记录</div>
       <div v-else class="v-tl">
         <div
@@ -40,7 +43,7 @@
           <div class="v-tl__body">
             <div class="v-tl__head">
               <span class="v-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
-              <span v-if="node.traceTime" class="v-tl__time">{{ node.traceTime }}</span>
+              <span v-if="node.traceTime" class="v-tl__time">{{ nodeTimeText(node) }}</span>
             </div>
             <div v-if="node.operatorName" class="v-tl__op">{{ node.operatorName }}</div>
           </div>
@@ -154,6 +157,17 @@ const workSummary = computed(() => {
   const parts = Object.entries(counts).map(([k, n]) => `${farmWorkTypeLabel(k)} ${n} 次`);
   return parts.length ? parts.join(' / ') : `共 ${recs.length} 条`;
 });
+
+/**
+ * 时间轴节点时间文案：种植 / 采摘两节点只显示日期（客户：时间只显示日期即可）——
+ * 它们本就是按天记的农事，精确到时分秒没有意义；其余节点（毛菜处理 / 产品生产 / 冷链发货 / 到店）
+ * 是当天多次的工序，保留时分秒。后端给的是 "YYYY-MM-DD HH:mm:ss"，按空格切首段。
+ */
+const DATE_ONLY_NODES = new Set(['sowing', 'harvest']);
+function nodeTimeText(node: { traceContent?: string; traceTime?: string }): string {
+  const t = node.traceTime ?? '';
+  return DATE_ONLY_NODES.has(node.traceContent ?? '') ? t.split(' ')[0] : t;
+}
 
 const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
 // 果蔬重量按克展示（后端给 kg 数值）；非纯数字（规格串兜底）原样显示（row146）
@@ -387,19 +401,22 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 }
 .v-store__row {
   display: flex;
-  align-items: center;
+  /* 顶对齐：地址折行成多行时，图标与 label 跟首行对齐，不被整块垂直居中 */
+  align-items: flex-start;
   gap: 7px;
   padding: 5px 0;
   font-size: 14px;
+  line-height: 1.5;
   color: #333;
 }
 .v-store__ic {
   flex: 0 0 auto;
+  margin-top: 2px; /* 16px 图标在 21px 行高里视觉居首行 */
 }
 .v-store__k {
   color: #808680;
 }
-/* 门店地址不换行：label 不缩，地址值单行省略号（row146） */
+/* 门店地址自动换行显示全：label 不缩，地址值占满剩余宽度、超长折行不截断 */
 .v-store__k--addr {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -407,8 +424,7 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 .v-store__addr {
   flex: 1;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 </style>

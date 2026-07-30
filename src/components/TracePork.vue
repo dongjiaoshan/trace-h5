@@ -7,9 +7,9 @@
         <img v-if="product?.imageUrl" class="p-prod__thumb" :src="product.imageUrl" alt="" />
         <div class="p-prod__kv">
           <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
-          <div class="tr-kv"><span class="tr-kv__k">编码：</span><span class="tr-kv__code">{{ product?.produceCode || code }}</span></div>
-          <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">规格：</span><span>{{ product.spec }}</span></div>
-          <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">重量：</span><span>{{ product.weight }}</span></div>
+          <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
+          <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
+          <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ product.weight }}</span></div>
         </div>
       </div>
       <div v-if="product?.description" class="p-desc"><span class="tr-kv__k">产品描述：</span>{{ product.description }}</div>
@@ -37,9 +37,9 @@
       </div>
     </div>
 
-    <!-- 流程处理时间轴 -->
+    <!-- 品质溯源时间线 -->
     <div class="p-card">
-      <TraceSectionTitle title="流程处理时间轴" />
+      <TraceSectionTitle title="品质溯源时间线" />
       <div v-if="timeline.length === 0" class="tr-empty">暂无流程记录</div>
       <div v-else class="p-tl">
         <div
@@ -53,7 +53,7 @@
           </span>
           <div class="p-tl__body">
             <div class="p-tl__head">
-              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="node.weight" class="p-tl__wt"> · {{ node.weight }}kg</span></span>
+              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="nodeWeightG(node.weight)" class="p-tl__wt"> · {{ nodeWeightG(node.weight) }}</span></span>
               <span v-if="node.traceTime" class="p-tl__time">{{ node.traceTime }}</span>
             </div>
             <div v-if="node.operatorName" class="p-tl__op">{{ node.operatorName }}</div>
@@ -67,7 +67,7 @@
       <img class="p-grow__thumb" :src="growThumb" alt="" />
       <div class="p-grow__main">
         <div class="p-grow__title">生长记录</div>
-        <div class="p-grow__sub">背膘测量：{{ backfatCount }} 次　生长记录：{{ growthRecords.length }} 次</div>
+        <div class="p-grow__sub">生长记录：{{ growthRecords.length }} 次</div>
       </div>
       <span class="p-grow__chev"><IconArrow :size="16" /></span>
     </div>
@@ -144,12 +144,21 @@ const pigImages = computed(() =>
   )
 );
 
-// 生长记录下钻入口：背膘测量次数（有背膘值的记录数）+ 生长记录总数；缩略图取首张生长照片，无则默认猪图
+// 生长记录下钻入口：生长记录总数；缩略图取首张生长照片，无则默认猪图
 const growthRecords = computed(() => props.trace.growthRecords ?? []);
-const backfatCount = computed(() => growthRecords.value.filter((g) => !!g.backfat).length);
 const growThumb = computed(
   () => growthRecords.value.find((g) => !!g.photoUrl)?.photoUrl || porkBaseThumb
 );
+
+/**
+ * 时间轴节点重量展示：后端按 kg 原样透传（来源 scale 不同会出「2」/「2.000」），
+ * 统一 ×1000 取整按克显示。非数值 / 空 → 返回空串，模板不渲染该段。
+ */
+function nodeWeightG(weightKg?: string): string {
+  const n = Number(weightKg);
+  if (!weightKg || !Number.isFinite(n)) return '';
+  return `${Math.round(n * 1000)}g`;
+}
 
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
@@ -384,19 +393,22 @@ const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
 }
 .p-store__row {
   display: flex;
-  align-items: center;
+  /* 顶对齐：地址折行成多行时，图标与 label 跟首行对齐，不被整块垂直居中 */
+  align-items: flex-start;
   gap: 7px;
   padding: 5px 0;
   font-size: 14px;
+  line-height: 1.5;
   color: #333;
 }
 .p-store__ic {
   flex: 0 0 auto;
+  margin-top: 2px; /* 16px 图标在 21px 行高里视觉居首行 */
 }
 .p-store__k {
   color: #808680;
 }
-/* 门店地址不换行：label 不缩，地址值单行省略号 */
+/* 门店地址自动换行显示全：label 不缩，地址值占满剩余宽度、超长折行不截断 */
 .p-store__k--addr {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -404,8 +416,7 @@ const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
 .p-store__addr {
   flex: 1;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 </style>

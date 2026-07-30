@@ -21,6 +21,8 @@ export interface TraceProductVo {
   imageUrl?: string;
   /** 追溯码（= produce_code 业务码 string） */
   produceCode?: string;
+  /** 生产编号（= product_production.produce_no 生产单号；无打包记录为 null） */
+  produceNo?: string;
   /** 打包日期（V1 无独立列，用追溯码生成时间兜底） */
   packDate?: string;
   /** 生长天数（veg 专属，源 trace_code.plant_days） */
@@ -39,7 +41,7 @@ export interface TraceEventVo {
   traceTime?: string;
   /** 操作人姓名（后端已翻译，无裸 id） */
   operatorName?: string;
-  /** 该节点工序重量 kg（后端解析 event_data 的 weight；有才展示「· 5.20kg」） */
+  /** 该节点工序重量 kg（后端解析 event_data 的 weight；前端统一按克取整展示「· 5200g」） */
   weight?: string;
 }
 
