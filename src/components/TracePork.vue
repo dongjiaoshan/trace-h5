@@ -4,7 +4,7 @@
     <div class="p-card">
       <!-- 产品 header：缩略图 + KV -->
       <div class="p-prod">
-        <img v-if="product?.imageUrl" class="p-prod__thumb" :src="product.imageUrl" alt="" />
+        <img v-if="prodImage" class="p-prod__thumb" :src="prodImage" alt="" />
         <div class="p-prod__kv">
           <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
           <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
@@ -127,11 +127,41 @@ import TraceCarousel from './TraceCarousel.vue';
 import IconArrow from './IconArrow.vue';
 import porkBaseThumb from '@/assets/base/pork-base-thumb.jpg';
 import porkStoreDefault from '@/assets/base/pork-store-default.jpg';
+import cutFrontLeg from '@/assets/pork-cut/front-leg.png';
+import cutPorkBelly from '@/assets/pork-cut/pork-belly.png';
+import cutRibs from '@/assets/pork-cut/ribs.png';
+import cutElbow from '@/assets/pork-cut/elbow.png';
+import cutPorkChop from '@/assets/pork-cut/pork-chop.png';
 
 const props = defineProps<{ trace: PublicTraceVo; code: string }>();
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
 
 const product = computed(() => props.trace.product ?? null);
+
+/**
+ * 部位中文名 → 本地抠图（与 admin 门店猪肉打包面板 LOCAL_CUT_IMG 同一套图，保持两端一致）。
+ * 门店现场生码在客户未把部位配成「门店打包间」产品时，商品名取自部位字典 djs_pork_cut_product，
+ * 后端反查不到产品图 → 用这里的部位图兜底，避免产品卡无图。
+ */
+const CUT_IMG: Record<string, string> = {
+  前腿肉: cutFrontLeg,
+  五花肉: cutPorkBelly,
+  排骨: cutRibs,
+  肘子: cutElbow,
+  大排: cutPorkChop
+};
+
+/**
+ * 产品图：后端解析出的配置图优先，无则按部位名回落本地抠图。
+ * 必须先判自有属性再取值，不能裸下标——商品名是客户在 admin 自由填的，
+ * 取到 `toString` / `constructor` 这类原型成员会当成图片 URL 渲染出一张碎图。
+ */
+const prodImage = computed(() => {
+  const p = product.value;
+  if (p?.imageUrl) return p.imageUrl;
+  const name = p?.name;
+  return name && Object.prototype.hasOwnProperty.call(CUT_IMG, name) ? CUT_IMG[name] : '';
+});
 const pig = computed(() => props.trace.pig ?? null);
 const pedigree = computed(() => props.trace.pedigree ?? null);
 const timeline = computed(() => props.trace.timeline ?? []);
