@@ -2,23 +2,23 @@
   <TraceLayout theme="pork">
     <!-- 产品 + 猪只信息 -->
     <div class="p-card">
-      <!-- 产品 header：缩略图 + KV -->
-      <div class="p-prod">
-        <img v-if="prodImage" class="p-prod__thumb" :src="prodImage" alt="" />
-        <div class="p-prod__kv">
-          <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
-          <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
-          <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
-          <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ product.weight }}</span></div>
-        </div>
+      <TraceSectionTitle title="产品信息" />
+      <!-- 产品图独立整块显示，版式与果蔬追溯（TraceVeg）一致：方形卡位 + fill
+           （产品配图 85% 是 1:1 设计稿，方卡位下铺满零裁切；少数非方实拍图靠拉伸填满、整图仍完整可见）。 -->
+      <TraceCarousel :images="productImages" ratio="1 / 1" fit="fill" />
+      <div class="p-kvs">
+        <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
+        <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
+        <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
+        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ product.weight }}</span></div>
+        <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
       </div>
-      <div v-if="product?.description" class="p-desc"><span class="tr-kv__k">产品描述：</span>{{ product.description }}</div>
 
-      <!-- 猪只照片轮播（pig.photoUrl + 生长记录照片；无则隐藏） -->
-      <TraceCarousel v-if="pigImages.length" :images="pigImages" class="p-carousel" />
-
-      <!-- 猪只追溯（耳号整行 + 两列 KV） -->
+      <!-- 猪只追溯（照片轮播 + 耳号整行 + 两列 KV）。
+           照片轮播放在本区块标题之下：归属清晰（是这头猪的照片，不是产品图），
+           且与上方 1:1 产品图隔开，避免两张整宽大图连排把首屏顶掉。 -->
       <TraceSectionTitle title="猪只追溯" />
+      <TraceCarousel v-if="pigImages.length" :images="pigImages" class="p-carousel" />
       <div v-if="pig?.earNo" class="p-pig__ear"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
       <div class="p-pig__cols">
         <div v-if="pig?.birthDate || pig?.marketDate" class="p-pig__col">
@@ -151,15 +151,15 @@ const CUT_IMG: Record<string, string> = {
 };
 
 /**
- * 产品图：后端解析出的配置图优先，无则按部位名回落本地抠图。
+ * 产品图（轮播入参，与果蔬追溯同一个 TraceCarousel）：后端解析出的配置图优先，无则按部位名回落本地抠图。
  * 必须先判自有属性再取值，不能裸下标——商品名是客户在 admin 自由填的，
  * 取到 `toString` / `constructor` 这类原型成员会当成图片 URL 渲染出一张碎图。
  */
-const prodImage = computed(() => {
+const productImages = computed(() => {
   const p = product.value;
-  if (p?.imageUrl) return p.imageUrl;
+  if (p?.imageUrl) return [p.imageUrl];
   const name = p?.name;
-  return name && Object.prototype.hasOwnProperty.call(CUT_IMG, name) ? CUT_IMG[name] : '';
+  return name && Object.prototype.hasOwnProperty.call(CUT_IMG, name) ? [CUT_IMG[name]] : [];
 });
 const pig = computed(() => props.trace.pig ?? null);
 const pedigree = computed(() => props.trace.pedigree ?? null);
@@ -215,35 +215,13 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefault);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-/* 产品 header：缩略图 + KV */
-.p-prod {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-.p-prod__thumb {
-  flex: 0 0 84px;
-  width: 84px;
-  height: 84px;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block;
-}
-.p-prod__kv {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.p-desc {
+/* 产品信息 KV 块（产品图整块在上，KV 列在下 —— 与果蔬追溯 .v-kvs 同版式） */
+.p-kvs {
   margin-top: 10px;
-  font-size: 13.5px;
-  color: #333;
-  line-height: 1.6;
 }
+/* 猪只照片轮播贴在「猪只追溯」标题下（标题自带 14px 下边距），只需与下方耳号行留白 */
 .p-carousel {
-  margin-top: 12px;
+  margin-bottom: 12px;
 }
 
 /* 猪只追溯：耳号整行 + 两列 KV（左列含出栏日 datetime，右列短值，两端对齐） */
