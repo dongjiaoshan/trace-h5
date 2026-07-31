@@ -45,7 +45,7 @@
               <span class="v-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
               <span v-if="node.traceTime" class="v-tl__time">{{ nodeTimeText(node) }}</span>
             </div>
-            <div v-if="node.operatorName" class="v-tl__op">{{ node.operatorName }}</div>
+            <div v-if="node.operatorName && !FARM_WORK_NODES.has(node.traceContent ?? '')" class="v-tl__op">{{ node.operatorName }}</div>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ import IconArrow from './IconArrow.vue';
 import thumbFieldRows from '@/assets/base/thumb-field-rows.jpg';
 import thumbWeeding from '@/assets/base/thumb-weeding.jpg';
 import thumbPanorama from '@/assets/base/thumb-panorama.jpg';
-import storeDefaultImg from '@/assets/base/base-panorama.jpg';
+import storeDefaultImg from '@/assets/base/store-default.jpg';
 
 const props = defineProps<{ trace: PublicTraceVo; code: string }>();
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
@@ -159,14 +159,15 @@ const workSummary = computed(() => {
 });
 
 /**
- * 时间轴节点时间文案：种植 / 采摘两节点只显示日期（客户：时间只显示日期即可）——
- * 它们本就是按天记的农事，精确到时分秒没有意义；其余节点（毛菜处理 / 产品生产 / 冷链发货 / 到店）
- * 是当天多次的工序，保留时分秒。后端给的是 "YYYY-MM-DD HH:mm:ss"，按空格切首段。
+ * 种植 / 采摘 两个农事节点的特殊处理（它们本就是按天记的农事）：
+ *  ① 时间只显示日期（精确到时分秒无意义）；其余节点（毛菜处理 / 产品生产 / 冷链发货 / 到店）保留时分秒。
+ *  ② 节点下方不显示种植班组（客户 row82：去掉采摘、种植下方的种植班组）——班组以 operatorName 透传，此处隐藏。
+ * 后端给的时间是 "YYYY-MM-DD HH:mm:ss"，按空格切首段取日期。
  */
-const DATE_ONLY_NODES = new Set(['sowing', 'harvest']);
+const FARM_WORK_NODES = new Set(['sowing', 'harvest']);
 function nodeTimeText(node: { traceContent?: string; traceTime?: string }): string {
   const t = node.traceTime ?? '';
-  return DATE_ONLY_NODES.has(node.traceContent ?? '') ? t.split(' ')[0] : t;
+  return FARM_WORK_NODES.has(node.traceContent ?? '') ? t.split(' ')[0] : t;
 }
 
 const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
@@ -177,7 +178,8 @@ const weightDisplay = computed(() => {
   const n = Number(w);
   return Number.isFinite(n) ? `${Math.round(n * 1000 * 100) / 100} g` : String(w);
 });
-// 门店配图：优先门店自有图（image_oss_id），无则默认基地图兜底（row146）
+// 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底（与猪肉追溯同一张 store-default）。
+// row82：原来兜底用基地航拍图（base-panorama），门店卡里显示成一张农田远景、被客户判为「图片显示有误」。
 const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 </script>
 
