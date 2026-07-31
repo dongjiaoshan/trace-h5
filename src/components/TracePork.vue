@@ -21,8 +21,7 @@
       <TraceSectionTitle title="猪只追溯" />
       <div v-if="pig?.earNo" class="p-pig__ear"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
       <div class="p-pig__cols">
-        <div v-if="pig?.sex || pig?.birthDate || pig?.marketDate" class="p-pig__col">
-          <div v-if="pig?.sex" class="tr-kv"><span class="tr-kv__k">性别：</span><span>{{ pigSexLabel(pig.sex) }}</span></div>
+        <div v-if="pig?.birthDate || pig?.marketDate" class="p-pig__col">
           <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生日：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
           <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏日：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
         </div>
@@ -53,10 +52,10 @@
           </span>
           <div class="p-tl__body">
             <div class="p-tl__head">
-              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="nodeWeightG(node.weight)" class="p-tl__wt"> · {{ nodeWeightG(node.weight) }}</span></span>
+              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="nodeWeightG(node.weight) && !isProductionNode(node.traceContent)" class="p-tl__wt"> · {{ nodeWeightG(node.weight) }}</span></span>
               <span v-if="node.traceTime" class="p-tl__time">{{ node.traceTime }}</span>
             </div>
-            <div v-if="node.operatorName" class="p-tl__op">{{ node.operatorName }}</div>
+            <div v-if="node.operatorName && !isProductionNode(node.traceContent)" class="p-tl__op">{{ node.operatorName }}</div>
           </div>
         </div>
       </div>
@@ -120,13 +119,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
-import { traceContentLabel, pigSexLabel } from '@/api/labels';
+import { traceContentLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
 import IconArrow from './IconArrow.vue';
 import porkBaseThumb from '@/assets/base/pork-base-thumb.jpg';
-import porkStoreDefault from '@/assets/base/pork-store-default.jpg';
+import storeDefault from '@/assets/base/store-default.jpg';
 import cutFrontLeg from '@/assets/pork-cut/front-leg.png';
 import cutPorkBelly from '@/assets/pork-cut/pork-belly.png';
 import cutRibs from '@/assets/pork-cut/ribs.png';
@@ -190,12 +189,19 @@ function nodeWeightG(weightKg?: string): string {
   return `${Math.round(n * 1000)}g`;
 }
 
+// 产品生产节点（traceContent in_stock / pack，见 labels）不显示操作人和重量：
+// 客户「品质溯源时间线中，产品生产不显示人员和重量」；重量在顶部产品卡已有，时间线只留工序日期。
+const PRODUCTION_NODES = new Set(['in_stock', 'pack']);
+function isProductionNode(traceContent?: string): boolean {
+  return PRODUCTION_NODES.has(traceContent ?? '');
+}
+
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
 );
 const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
 // 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底
-const storeImage = computed(() => store.value?.imageUrl || porkStoreDefault);
+const storeImage = computed(() => store.value?.imageUrl || storeDefault);
 </script>
 
 <style lang="scss" scoped>
