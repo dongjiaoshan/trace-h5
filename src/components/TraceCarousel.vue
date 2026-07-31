@@ -3,7 +3,7 @@
   <div class="tc">
     <div ref="vp" class="tc__vp" @scroll="onScroll">
       <template v-if="images.length">
-        <div v-for="(src, i) in images" :key="i" class="tc__slide" :style="{ aspectRatio: ratio }">
+        <div v-for="(src, i) in images" :key="i" class="tc__slide" :style="{ aspectRatio: ratio, background: bg }">
           <img :src="src" alt="" :style="{ objectFit: fit }" />
         </div>
       </template>
@@ -39,8 +39,13 @@ const props = withDefaults(
      * 产品图传 `1 / 1`：产品配图绝大多数是 1:1 设计稿，方形卡位下正好铺满不留边。
      */
     ratio?: string;
+    /**
+     * 卡位底色（`contain` 时图周留白处可见）。默认浅灰。
+     * 白底去背实拍图传 `#fff`：留白与白卡无缝，不会露出灰色柱条。
+     */
+    bg?: string;
   }>(),
-  { fit: 'cover', ratio: '16 / 10' }
+  { fit: 'cover', ratio: '16 / 10', bg: '#f0f2f1' }
 );
 const vp = ref<HTMLElement | null>(null);
 const idx = ref(0);
@@ -77,7 +82,7 @@ function go(dir: number) {
 .tc__slide {
   flex: 0 0 100%;
   scroll-snap-align: center;
-  background: #f0f2f1; /* aspect-ratio 由 ratio prop 内联控制 */
+  background: #f0f2f1; /* aspect-ratio 由 ratio prop、底色由 bg prop 内联控制 */
 }
 .tc__slide--ph {
   aspect-ratio: 16 / 10;

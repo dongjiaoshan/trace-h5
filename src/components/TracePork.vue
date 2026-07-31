@@ -4,8 +4,14 @@
     <div class="p-card">
       <TraceSectionTitle title="产品信息" />
       <!-- 产品图独立整块显示，版式与果蔬追溯（TraceVeg）一致：方形卡位 + fill
-           （产品配图 85% 是 1:1 设计稿，方卡位下铺满零裁切；少数非方实拍图靠拉伸填满、整图仍完整可见）。 -->
-      <TraceCarousel :images="productImages" ratio="1 / 1" fit="fill" />
+           （产品配图 85% 是 1:1 设计稿，方卡位下铺满零裁切；少数非方实拍图靠拉伸填满、整图仍完整可见）。
+           部位抠图兜底走另一套卡位参数，见 cutFallback。 -->
+      <TraceCarousel
+        :images="productImages"
+        :ratio="productRatio"
+        :fit="productFit"
+        :bg="productBg"
+      />
       <div class="p-kvs">
         <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
         <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
@@ -161,6 +167,20 @@ const productImages = computed(() => {
   const name = p?.name;
   return name && Object.prototype.hasOwnProperty.call(CUT_IMG, name) ? [CUT_IMG[name]] : [];
 });
+
+/** 当前展示的是本地部位抠图兜底（而非客户在 admin 配的产品图）。 */
+const cutFallback = computed(() => !product.value?.imageUrl && productImages.value.length > 0);
+
+/**
+ * 产品图卡位参数，两条路径分别取值：
+ *  - 配置产品图（常规）→ `1 / 1` + `fill`，与果蔬追溯完全一致（配图多为 1:1 设计稿，铺满零裁切）。
+ *  - 部位抠图兜底 → `16 / 10` + `contain` + 白底。这几张源图只有 156x140（比例 1.114 的白底实拍横图），
+ *    套 1:1 铺满会纵向多拉伸 11% 把肉块拉变形，且 2.4x 上采样在 DPR2 上糊成一团；
+ *    16:10 卡位下 contain 只放大 1.47x、零形变，白底与白卡无缝（灰底会露出两条灰柱）。
+ */
+const productRatio = computed(() => (cutFallback.value ? '16 / 10' : '1 / 1'));
+const productFit = computed<'cover' | 'fill' | 'contain'>(() => (cutFallback.value ? 'contain' : 'fill'));
+const productBg = computed(() => (cutFallback.value ? '#fff' : '#f0f2f1'));
 const pig = computed(() => props.trace.pig ?? null);
 const pedigree = computed(() => props.trace.pedigree ?? null);
 const timeline = computed(() => props.trace.timeline ?? []);
