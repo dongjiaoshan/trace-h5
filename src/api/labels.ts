@@ -15,7 +15,7 @@ const TRACE_CONTENT_LABELS: Record<string, string> = {
   slaughter: '屠宰',
   acid: '排酸',
   in_stock: '产品生产',
-  ship: '冷链发货',
+  ship: '冷链运输',
   arrival: '到店',
   sowing: '种植',
   harvest: '采摘',
