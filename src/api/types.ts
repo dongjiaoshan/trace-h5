@@ -41,7 +41,7 @@ export interface TraceEventVo {
   traceTime?: string;
   /** 操作人姓名（后端已翻译，无裸 id） */
   operatorName?: string;
-  /** 该节点工序重量 kg（后端解析 event_data 的 weight；前端统一按克取整展示「· 5200g」） */
+  /** 该节点工序重量 kg（后端解析 event_data 的 weight）。r131 起时间线不展示重量，字段保留只为反映接口契约 */
   weight?: string;
 }
 
