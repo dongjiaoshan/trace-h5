@@ -66,8 +66,8 @@
       </div>
     </div>
 
-    <!-- 生长记录（下钻；始终显示，无数据时详情页显示「暂无生长记录」） -->
-    <div class="p-grow" @click="emit('go', 'grow')">
+    <!-- 生长记录（下钻；r134：记录数没到字典门槛就整块不显示） -->
+    <div v-if="showGrowth" class="p-grow" @click="emit('go', 'grow')">
       <img class="p-grow__thumb" :src="growThumb" alt="" />
       <div class="p-grow__main">
         <div class="p-grow__title">生长记录</div>
@@ -197,6 +197,9 @@ const growthRecords = computed(() => props.trace.growthRecords ?? []);
 const growThumb = computed(
   () => growthRecords.value.find((g) => !!g.photoUrl)?.photoUrl || porkBaseThumb
 );
+// r134：生长记录入口的显示门槛由后端下发（字典 djs_trace_grow_show_min，客户可改），
+// 记录数不足门槛整块不出现——不是显示成「0 次」。后端没给（老接口）时按 3 兜底。
+const showGrowth = computed(() => growthRecords.value.length >= (props.trace.growthShowMin ?? 3));
 
 // r131：时间轴每行只有「节点名 + 时间」，重量与操作人都不显示
 // （重量在顶部产品卡已有，操作人对顾客没有意义）。

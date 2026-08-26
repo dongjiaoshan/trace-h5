@@ -224,6 +224,10 @@ export interface PublicTraceVo {
   product?: TraceProductVo;
   /** 流程时间轴（按 traceTime 倒序，节点数 = 实际 event 行数） */
   timeline?: TraceEventVo[];
+  /** r134：生长记录入口的显示门槛（字典 djs_trace_grow_show_min，默认 3）——记录数不够就整块不显示 */
+  growthShowMin?: number;
+  /** r135：农事记录入口的显示门槛（字典 djs_trace_farm_show_min，默认 3） */
+  plotRecordShowMin?: number;
   // ── pork 专属 ──
   pig?: TracePigVo;
   growthRecords?: TraceGrowthRecordVo[];

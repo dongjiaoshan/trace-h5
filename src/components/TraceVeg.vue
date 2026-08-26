@@ -51,8 +51,8 @@
       </div>
     </div>
 
-    <!-- 作物农事记录（下钻） -->
-    <div class="v-entry" @click="emit('go', 'plot-records')">
+    <!-- 作物农事记录（下钻；r135：记录数没到字典门槛就整块不显示） -->
+    <div v-if="showPlotRecords" class="v-entry" @click="emit('go', 'plot-records')">
       <div class="v-entry__main">
         <div class="v-entry__title">作物农事记录</div>
         <div class="v-entry__sub">{{ workSummary }}<IconArrow class="v-entry__chev" :size="13" /></div>
@@ -146,6 +146,12 @@ const productImages = computed(() => [product.value?.imageUrl].filter((s): s is 
 // 地块缩略图：无地块专属图，用基地环境图代表（thumb-field-rows）
 const plotThumb = thumbFieldRows;
 const plotTag = computed(() => plot.value?.plotName || product.value?.plotName || '');
+
+// r135：农事记录入口的显示门槛由后端下发（字典 djs_trace_farm_show_min，客户可改），
+// 记录数不足门槛整块不出现。后端没给（老接口）时按 3 兜底。
+const showPlotRecords = computed(
+  () => plotRecords.value.length >= (props.trace.plotRecordShowMin ?? 3)
+);
 
 const workSummary = computed(() => {
   const recs = plotRecords.value;
