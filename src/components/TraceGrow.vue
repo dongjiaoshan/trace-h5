@@ -4,7 +4,7 @@
     <div class="g-card">
       <div class="g-title">生长记录</div>
 
-      <div v-if="growthRecords.length === 0" class="tr-empty">暂无生长记录</div>
+      <div v-if="!showGrow" class="tr-empty">暂无生长记录</div>
       <div v-else class="g-tl">
         <div
           v-for="(g, idx) in growthRecords"
@@ -36,6 +36,12 @@ import TraceLayout from './TraceLayout.vue';
 const props = defineProps<{ trace: PublicTraceVo }>();
 
 const growthRecords = computed(() => props.trace.growthRecords ?? []);
+
+// r134：门槛没到就当没有记录——入口卡片藏了但路由还通，直接输 URL 进来
+// 也不能把条数不足的记录漏出去，否则「否则不显示」只做了一半。
+const showGrow = computed(
+  () => growthRecords.value.length >= (props.trace.growthShowMin ?? 3)
+);
 
 // 度量：体重（kg）+ 背膘（mm），有则展示，均无则不出行
 function metricOf(g: TraceGrowthRecordVo): string {

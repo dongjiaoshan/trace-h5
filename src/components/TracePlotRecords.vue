@@ -2,8 +2,8 @@
   <div class="pr-page">
     <div class="t-card">
       <div class="t-section-title">作物农事记录</div>
-      <div v-if="records.length === 0" class="t-empty">暂无农事记录</div>
-      <div v-for="(r, idx) in records" :key="idx" class="pr-row">
+      <div v-if="!showRecords" class="t-empty">暂无农事记录</div>
+      <div v-for="(r, idx) in shownRecords" :key="idx" class="pr-row">
         <div class="pr-dot" :style="{ background: dotColor(r.workType) }"></div>
         <div class="pr-content">
           <div class="pr-head">
@@ -26,6 +26,13 @@ import { farmWorkTypeLabel } from '@/api/labels';
 const props = defineProps<{ trace: PublicTraceVo }>();
 
 const records = computed(() => props.trace.plotRecords ?? []);
+
+// r135：门槛没到就当没有记录——入口藏了但路由还通，直接输 URL 进来
+// 也不能把条数不足的记录漏出去，否则「否则不显示」只做了一半。
+const showRecords = computed(
+  () => records.value.length >= (props.trace.plotRecordShowMin ?? 3)
+);
+const shownRecords = computed(() => (showRecords.value ? records.value : []));
 
 // 农事类型 → 圆点色（浇灌/水肥蓝 / 施肥橙 / 其他主色绿）
 function dotColor(workType?: string): string {
