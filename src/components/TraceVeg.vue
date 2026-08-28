@@ -11,7 +11,7 @@
         <div class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product?.name || crop?.name }}</span></div>
         <div v-if="crop?.variety" class="tr-kv"><span class="tr-kv__k">品种：</span><span>{{ crop.variety }}</span></div>
         <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
-        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ weightDisplay }}</span></div>
+        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">实际重量：</span><span>{{ weightDisplay }}</span></div>
         <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
         <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
       </div>
@@ -103,7 +103,7 @@
     <div class="v-entry" @click="emit('go', 'base')">
       <div class="v-entry__main">
         <div class="v-entry__title">基地介绍</div>
-        <div class="v-entry__sub">3000 亩有机农场<IconArrow class="v-entry__chev" :size="13" /></div>
+        <div class="v-entry__sub">3800 亩有机农场<IconArrow class="v-entry__chev" :size="13" /></div>
       </div>
       <img class="v-entry__thumb" :src="thumbPanorama" alt="" />
     </div>
