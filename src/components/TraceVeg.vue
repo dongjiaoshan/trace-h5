@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <!-- 品质溯源时间线 -->
+    <!-- 品质溯源时间线（每行只有「节点名 + 时间」：处理人 / 种植班组一律不对顾客展示） -->
     <div class="v-card">
       <TraceSectionTitle title="品质溯源时间线" />
       <div v-if="timeline.length === 0" class="tr-empty">暂无流程记录</div>
@@ -45,7 +45,6 @@
               <span class="v-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
               <span v-if="node.traceTime" class="v-tl__time">{{ nodeTimeText(node) }}</span>
             </div>
-            <div v-if="node.operatorName && !FARM_WORK_NODES.has(node.traceContent ?? '')" class="v-tl__op">{{ node.operatorName }}</div>
           </div>
         </div>
       </div>
@@ -165,9 +164,8 @@ const workSummary = computed(() => {
 });
 
 /**
- * 种植 / 采摘 两个农事节点的特殊处理（它们本就是按天记的农事）：
- *  ① 时间只显示日期（精确到时分秒无意义）；其余节点（毛菜处理 / 产品生产 / 冷链运输 / 到店）保留时分秒。
- *  ② 节点下方不显示种植班组（客户 row82：去掉采摘、种植下方的种植班组）——班组以 operatorName 透传，此处隐藏。
+ * 种植 / 采摘 两个农事节点的时间只显示日期（它们本就是按天记的农事，精确到时分秒无意义）；
+ * 其余节点（毛菜处理 / 产品生产 / 冷链运输 / 到店）保留时分秒。
  * 后端给的时间是 "YYYY-MM-DD HH:mm:ss"，按空格切首段取日期。
  */
 const FARM_WORK_NODES = new Set(['sowing', 'harvest']);
@@ -298,12 +296,6 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
   color: #2f7c44;
   font-variant-numeric: tabular-nums;
 }
-.v-tl__op {
-  margin-top: 3px;
-  font-size: 12.5px;
-  color: #909399;
-}
-
 /* 下钻入口（左文右图） */
 .v-entry {
   display: flex;

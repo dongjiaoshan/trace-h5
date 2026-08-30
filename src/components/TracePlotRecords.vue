@@ -11,7 +11,6 @@
             <span v-if="r.date" class="pr-date">{{ r.date }}</span>
           </div>
           <div v-if="r.detail" class="pr-detail">{{ r.detail }}</div>
-          <div v-if="r.operatorName" class="pr-op">{{ r.operatorName }}</div>
         </div>
       </div>
     </div>
@@ -92,10 +91,5 @@ function dotColor(workType?: string): string {
 .pr-detail {
   font-size: 13px;
   color: #606266;
-}
-.pr-op {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 3px;
 }
 </style>

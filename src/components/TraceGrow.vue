@@ -17,7 +17,6 @@
             <div class="g-tl__head">
               <span v-if="g.ageDays != null" class="g-tl__age">{{ g.ageDays }} 日龄</span>
               <span v-if="g.date" class="g-tl__date">{{ g.date }}</span>
-              <span v-if="g.operatorName" class="g-tl__op">{{ g.operatorName }}</span>
             </div>
             <div v-if="metricOf(g)" class="g-tl__metric">{{ metricOf(g) }}</div>
             <img v-if="g.photoUrl" class="g-tl__photo" :src="g.photoUrl" alt="生长记录照片" />
@@ -120,15 +119,6 @@ function metricOf(g: TraceGrowthRecordVo): string {
   font-size: 13px;
   color: #606266;
   font-variant-numeric: tabular-nums;
-}
-.g-tl__op {
-  margin-left: auto;
-  flex: 0 0 auto;
-  background: #e8f3ec;
-  color: #2f7c44;
-  font-size: 12px;
-  padding: 2px 10px;
-  border-radius: 6px;
 }
 .g-tl__metric {
   margin-top: 9px;
