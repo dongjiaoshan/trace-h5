@@ -1,6 +1,14 @@
 <template>
-  <!-- 养殖基地详情页（pig1）：暖棕页底 + 白卡（相册 + 简介 + 3 张特色卡）。静态内容。 -->
-  <div class="pb-page">
+  <!--
+    养殖基地详情页（pig1）—— 猪肉追溯码点「养殖基地」下钻到这里。
+    r146：admin「追溯码配置管理」为猪肉追溯码配了基地介绍页图片 → 整屏铺那张图；
+    没配图 → 回落下面这套内置版式（暖棕页底 + 白卡：相册 + 简介 + 3 张特色卡），
+    保证上线当天没配图也不开天窗。
+  -->
+  <div v-if="introImage" class="pb-page pb-page--image">
+    <img class="pb-full" :src="introImage" alt="养殖基地" />
+  </div>
+  <div v-else class="pb-page">
     <div class="pb-card">
       <TraceSectionTitle title="养殖基地" />
 
@@ -28,12 +36,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import type { PublicTraceVo } from '@/api/types';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import galleryAerial from '@/assets/base/base-fields-aerial.jpg';
 import galleryGreenhouse from '@/assets/base/base-greenhouses.jpg';
 import featEco from '@/assets/base/pork-feat-eco.jpg';
 import featBreed from '@/assets/base/pork-feat-breed.jpg';
 import featSlow from '@/assets/base/pork-feat-slow.jpg';
+
+const props = defineProps<{ trace: PublicTraceVo }>();
+
+/** r146：后端下发的基地介绍页图片；为空则走下面的内置版式。 */
+const introImage = computed(() => props.trace?.baseIntroImageUrl ?? '');
 </script>
 
 <style lang="scss" scoped>
@@ -41,6 +56,15 @@ import featSlow from '@/assets/base/pork-feat-slow.jpg';
   min-height: 100vh;
   background: #754835;
   padding: 14px;
+}
+/* r146 配置图：整屏一张图，不套卡片不加标题 */
+.pb-page--image {
+  padding: 0;
+}
+.pb-full {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 .pb-card {
   background: #fff;

@@ -228,6 +228,11 @@ export interface PublicTraceVo {
   growthShowMin?: number;
   /** r135：农事记录入口的显示门槛（字典 djs_trace_farm_show_min，默认 3） */
   plotRecordShowMin?: number;
+  /**
+   * r146：基地介绍页图片 URL（admin「追溯码配置管理」按 codeType 配置）。
+   * 为空 = 未配置 → 基地介绍页回落内置版式（TraceBase / TracePorkBase 的静态内容）。
+   */
+  baseIntroImageUrl?: string;
   // ── pork 专属 ──
   pig?: TracePigVo;
   growthRecords?: TraceGrowthRecordVo[];

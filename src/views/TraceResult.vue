@@ -9,8 +9,8 @@
         <TraceGrow v-else-if="viewType === 'grow'" :trace="trace" />
         <TraceCert v-else-if="viewType === 'cert'" :trace="trace" :cert-type="certType" />
         <TracePlotRecords v-else-if="viewType === 'plot-records'" :trace="trace" />
-        <TraceBase v-else-if="viewType === 'base'" />
-        <TracePorkBase v-else-if="viewType === 'pork-base'" />
+        <TraceBase v-else-if="viewType === 'base'" :trace="trace" />
+        <TracePorkBase v-else-if="viewType === 'pork-base'" :trace="trace" />
         <!-- 兜底：未知 type 按业态原页渲染 -->
         <TracePork v-else-if="trace.codeType === 'pork'" :trace="trace" :code="code" @go="goSub" />
         <TraceVeg v-else :trace="trace" :code="code" @go="goSub" />

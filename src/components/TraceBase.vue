@@ -1,6 +1,14 @@
 <template>
-  <!-- 基地介绍详情页（追溯码27(2)-03）：深绿页底 + 白卡（相册 + 简介 + 2×2 特色格）。静态内容。 -->
-  <div class="vb-page">
+  <!--
+    基地介绍详情页（追溯码27(2)-03）。
+    r146：admin「追溯码配置管理」为果蔬追溯码配了基地介绍页图片 → 整屏铺那张图（甲方上传的是整页设计稿，
+    再套白卡和区块标题会出现图里图外两套标题）；没配图 → 回落下面这套内置版式（深绿页底 + 白卡：
+    相册 + 简介 + 2×2 特色格），保证上线当天没配图也不开天窗。
+  -->
+  <div v-if="introImage" class="vb-page vb-page--image">
+    <img class="vb-full" :src="introImage" alt="基地介绍" />
+  </div>
+  <div v-else class="vb-page">
     <div class="vb-card">
       <TraceSectionTitle title="基地介绍" />
 
@@ -33,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import type { PublicTraceVo } from '@/api/types';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import galleryFields from '@/assets/base/base-fields-aerial.jpg';
 import galleryGreenhouses from '@/assets/base/base-greenhouses.jpg';
@@ -41,6 +51,11 @@ import featSeedlings from '@/assets/base/base-seedlings.jpg';
 import featFieldRows from '@/assets/base/base-field-rows.jpg';
 import featGreenhouseInside from '@/assets/base/base-greenhouse-inside.jpg';
 import featWeeding from '@/assets/base/base-weeding.jpg';
+
+const props = defineProps<{ trace: PublicTraceVo }>();
+
+/** r146：后端下发的基地介绍页图片；为空则走下面的内置版式。 */
+const introImage = computed(() => props.trace?.baseIntroImageUrl ?? '');
 
 const features = [
   { title: '优选种植环境', desc: '有机生产对土壤环境要求苛刻，与其他农地相隔离，水源、大气、土壤无污染', img: featSeedlings },
@@ -55,6 +70,15 @@ const features = [
   min-height: 100vh;
   background: #15382a;
   padding: 14px;
+}
+/* r146 配置图：整屏一张图，不套卡片不加标题 */
+.vb-page--image {
+  padding: 0;
+}
+.vb-full {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 .vb-card {
   background: #fff;
