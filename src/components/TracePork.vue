@@ -16,7 +16,7 @@
         <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
         <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
         <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
-        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">产品重量：</span><span>{{ product.weight }}</span></div>
+        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">实际重量：</span><span>{{ product.weight }}</span></div>
         <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
       </div>
 
@@ -58,17 +58,16 @@
           </span>
           <div class="p-tl__body">
             <div class="p-tl__head">
-              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}<span v-if="nodeWeightG(node.weight) && !isProductionNode(node.traceContent)" class="p-tl__wt"> · {{ nodeWeightG(node.weight) }}</span></span>
+              <span class="p-tl__name">{{ traceContentLabel(node.traceContent) }}</span>
               <span v-if="node.traceTime" class="p-tl__time">{{ node.traceTime }}</span>
             </div>
-            <div v-if="node.operatorName && !isProductionNode(node.traceContent)" class="p-tl__op">{{ node.operatorName }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 生长记录（下钻；始终显示，无数据时详情页显示「暂无生长记录」） -->
-    <div class="p-grow" @click="emit('go', 'grow')">
+    <!-- 生长记录（下钻；r134：记录数没到字典门槛就整块不显示） -->
+    <div v-if="showGrowth" class="p-grow" @click="emit('go', 'grow')">
       <img class="p-grow__thumb" :src="growThumb" alt="" />
       <div class="p-grow__main">
         <div class="p-grow__title">生长记录</div>
@@ -198,23 +197,12 @@ const growthRecords = computed(() => props.trace.growthRecords ?? []);
 const growThumb = computed(
   () => growthRecords.value.find((g) => !!g.photoUrl)?.photoUrl || porkBaseThumb
 );
+// r134：生长记录入口的显示门槛由后端下发（字典 djs_trace_grow_show_min，客户可改），
+// 记录数不足门槛整块不出现——不是显示成「0 次」。后端没给（老接口）时按 3 兜底。
+const showGrowth = computed(() => growthRecords.value.length >= (props.trace.growthShowMin ?? 3));
 
-/**
- * 时间轴节点重量展示：后端按 kg 原样透传（来源 scale 不同会出「2」/「2.000」），
- * 统一 ×1000 取整按克显示。非数值 / 空 → 返回空串，模板不渲染该段。
- */
-function nodeWeightG(weightKg?: string): string {
-  const n = Number(weightKg);
-  if (!weightKg || !Number.isFinite(n)) return '';
-  return `${Math.round(n * 1000)}g`;
-}
-
-// 产品生产节点（traceContent in_stock / pack，见 labels）不显示操作人和重量：
-// 客户「品质溯源时间线中，产品生产不显示人员和重量」；重量在顶部产品卡已有，时间线只留工序日期。
-const PRODUCTION_NODES = new Set(['in_stock', 'pack']);
-function isProductionNode(traceContent?: string): boolean {
-  return PRODUCTION_NODES.has(traceContent ?? '');
-}
+// r131：时间轴每行只有「节点名 + 时间」，重量与操作人都不显示
+// （重量在顶部产品卡已有，操作人对顾客没有意义）。
 
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
@@ -358,22 +346,12 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefault);
   font-weight: 700;
   color: #2f3a33;
 }
-.p-tl__wt {
-  color: #2f7c44;
-  font-weight: 700;
-}
 .p-tl__time {
   flex: 0 0 auto;
   font-size: 12.5px;
   color: #9c5a30;
   font-variant-numeric: tabular-nums;
 }
-.p-tl__op {
-  margin-top: 3px;
-  font-size: 12.5px;
-  color: #909399;
-}
-
 /* 养殖基地入口（浅绿底 · 左文右图） */
 .p-base {
   display: flex;

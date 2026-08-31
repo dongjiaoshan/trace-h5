@@ -41,7 +41,7 @@ export interface TraceEventVo {
   traceTime?: string;
   /** 操作人姓名（后端已翻译，无裸 id） */
   operatorName?: string;
-  /** 该节点工序重量 kg（后端解析 event_data 的 weight；前端统一按克取整展示「· 5200g」） */
+  /** 该节点工序重量 kg（后端解析 event_data 的 weight）。r131 起时间线不展示重量，字段保留只为反映接口契约 */
   weight?: string;
 }
 
@@ -224,6 +224,10 @@ export interface PublicTraceVo {
   product?: TraceProductVo;
   /** 流程时间轴（按 traceTime 倒序，节点数 = 实际 event 行数） */
   timeline?: TraceEventVo[];
+  /** r134：生长记录入口的显示门槛（字典 djs_trace_grow_show_min，默认 3）——记录数不够就整块不显示 */
+  growthShowMin?: number;
+  /** r135：农事记录入口的显示门槛（字典 djs_trace_farm_show_min，默认 3） */
+  plotRecordShowMin?: number;
   // ── pork 专属 ──
   pig?: TracePigVo;
   growthRecords?: TraceGrowthRecordVo[];
