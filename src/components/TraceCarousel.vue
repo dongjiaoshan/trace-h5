@@ -4,7 +4,9 @@
     <div ref="vp" class="tc__vp" @scroll="onScroll">
       <template v-if="images.length">
         <div v-for="(src, i) in images" :key="i" class="tc__slide" :style="{ aspectRatio: ratio, background: bg }">
-          <img :src="src" alt="" :style="{ objectFit: fit }" />
+          <!-- preview 开启时走 PreviewImage：卡位里看不清的图（如证书）点一下能按屏宽放大 -->
+          <PreviewImage v-if="preview" :src="src" :fit="fit" fit-width />
+          <img v-else :src="src" alt="" :style="{ objectFit: fit }" />
         </div>
       </template>
       <!-- 无图占位不吃 ratio：ratio 是为「让产品设计稿方图铺满」设的，占位是一块纯灰底，
@@ -25,6 +27,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import PreviewImage from './PreviewImage.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -44,8 +47,13 @@ const props = withDefaults(
      * 白底去背实拍图传 `#fff`：留白与白卡无缝，不会露出灰色柱条。
      */
     bg?: string;
+    /**
+     * 点击图片放大查看（放大后按屏宽铺满、可上下滚动）。默认 false = 图片纯展示。
+     * 证书这类竖版长图在卡位里正文看不清，必须能点开。
+     */
+    preview?: boolean;
   }>(),
-  { fit: 'cover', ratio: '16 / 10', bg: '#f0f2f1' }
+  { fit: 'cover', ratio: '16 / 10', bg: '#f0f2f1', preview: false }
 );
 const vp = ref<HTMLElement | null>(null);
 const idx = ref(0);
@@ -87,7 +95,8 @@ function go(dir: number) {
 .tc__slide--ph {
   aspect-ratio: 16 / 10;
 }
-.tc__slide img {
+/* 直接子选择器：只管卡位里那张图，不误伤 PreviewImage 放大后挂在遮罩里的同名 img */
+.tc__slide > :deep(img) {
   width: 100%;
   height: 100%;
   display: block; /* object-fit 由 fit prop 内联控制 */
@@ -134,15 +143,20 @@ function go(dir: number) {
   justify-content: center;
   gap: 5px;
 }
+/* 圆点要压在任意底图上：产品实拍图多是深色/彩色，白点够用；
+   但有机证书是白纸扫描件、且 contain 卡位上下会留白边，纯白点会整排消失。
+   故给每个点加一圈深色描边——深底上看是白点，白底上靠描边显形，两种底都成立。 */
 .tc__dots span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32);
 }
 .tc__dots span.on {
   background: #fff;
   width: 16px;
   border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.42);
 }
 </style>

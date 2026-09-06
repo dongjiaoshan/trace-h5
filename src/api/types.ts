@@ -139,6 +139,8 @@ export interface TraceStoreVo {
   address?: string;
   /** 门店配图 URL（后端由 image_oss_id 解析；无图为空，前端默认图兜底） */
   imageUrl?: string;
+  /** 店长微信二维码图 URL（后端由 manager_wechat_oss_id 解析；无图为空，前端整块隐藏、不做默认图兜底） */
+  managerWechatUrl?: string;
 }
 
 /** 作物信息块（veg 专属）。 */

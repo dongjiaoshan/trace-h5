@@ -50,6 +50,15 @@
       </div>
     </div>
 
+    <!-- 基地介绍（下钻） -->
+    <div class="v-entry" @click="emit('go', 'base')">
+      <div class="v-entry__main">
+        <div class="v-entry__title">基地介绍</div>
+        <div class="v-entry__sub">3800 亩有机农场<IconArrow class="v-entry__chev" :size="13" /></div>
+      </div>
+      <img class="v-entry__thumb" :src="thumbPanorama" alt="" />
+    </div>
+
     <!-- 作物农事记录（下钻；r135：记录数没到字典门槛就整块不显示） -->
     <div v-if="showPlotRecords" class="v-entry" @click="emit('go', 'plot-records')">
       <div class="v-entry__main">
@@ -71,8 +80,19 @@
         </div>
       </div>
       <div v-for="(cert, i) in organicCerts" :key="i" class="v-cert__item">
-        <div v-if="certImages(cert).length" class="v-cert__imgs">
-          <img v-for="(img, j) in certImages(cert)" :key="j" class="v-cert__img" :src="img" alt="有机认证证书" />
+        <!-- 多图：一次显示一张、左右滑动切换（并排平铺时每张只有指甲盖大，证书正文完全看不清 · row168） -->
+        <TraceCarousel
+          v-if="certImages(cert).length > 1"
+          class="v-cert__carousel"
+          :images="certImages(cert)"
+          ratio="1 / 1.4"
+          fit="contain"
+          bg="#fff"
+          preview
+        />
+        <!-- 单图：维持整宽单张的原版式，同样可以点开放大 -->
+        <div v-else-if="certImages(cert).length" class="v-cert__img">
+          <PreviewImage :src="certImages(cert)[0]" fit="contain" fit-width />
         </div>
         <div class="v-cert__meta">
           <div v-if="cert.issuer" class="tr-kv"><span class="tr-kv__k">认证机构：</span><span>{{ cert.issuer }}</span></div>
@@ -83,29 +103,7 @@
     </div>
 
     <!-- 销售门店 -->
-    <div v-if="showStore" class="v-card">
-      <TraceSectionTitle title="销售门店" />
-      <img class="v-store__img" :src="storeImage" alt="门店" />
-      <div class="v-store">
-        <div v-if="store?.name" class="v-store__row">
-          <svg class="v-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>
-          <span class="v-store__k">门店名称：</span><span>{{ store.name }}</span>
-        </div>
-        <div v-if="store?.address" class="v-store__row">
-          <svg class="v-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>
-          <span class="v-store__k v-store__k--addr">门店地址：</span><span class="v-store__addr">{{ store.address }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 基地介绍（下钻） -->
-    <div class="v-entry" @click="emit('go', 'base')">
-      <div class="v-entry__main">
-        <div class="v-entry__title">基地介绍</div>
-        <div class="v-entry__sub">3800 亩有机农场<IconArrow class="v-entry__chev" :size="13" /></div>
-      </div>
-      <img class="v-entry__thumb" :src="thumbPanorama" alt="" />
-    </div>
+    <TraceStoreCard :store="store" />
   </TraceLayout>
 </template>
 
@@ -116,11 +114,12 @@ import { traceContentLabel, farmWorkTypeLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
+import TraceStoreCard from './TraceStoreCard.vue';
+import PreviewImage from './PreviewImage.vue';
 import IconArrow from './IconArrow.vue';
 import thumbFieldRows from '@/assets/base/thumb-field-rows.jpg';
 import thumbWeeding from '@/assets/base/thumb-weeding.jpg';
 import thumbPanorama from '@/assets/base/thumb-panorama.jpg';
-import storeDefaultImg from '@/assets/base/store-default.jpg';
 
 const props = defineProps<{ trace: PublicTraceVo; code: string }>();
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
@@ -132,8 +131,8 @@ const timeline = computed(() => props.trace.timeline ?? []);
 const plotRecords = computed(() => props.trace.plotRecords ?? []);
 const organicCerts = computed(() => props.trace.organicCerts ?? []);
 
-// row162/row24：一证多图全展示——优先 imageUrls（多图），回落 imageUrl（旧单图，向后兼容）。
-// 与 TraceCert.vue 同口径：证书配置多张图（crop_image_url 逗号分隔）后端解析成 imageUrls，逐张渲染。
+// 一证多图——优先 imageUrls（多图），回落 imageUrl（旧单图，向后兼容）。
+// 与 TraceCert.vue 同口径：证书配置多张图（crop_image_url 逗号分隔）后端解析成 imageUrls，交给轮播逐张滑。
 function certImages(c: { imageUrls?: string[]; imageUrl?: string }): string[] {
   if (c.imageUrls && c.imageUrls.length) return c.imageUrls;
   return c.imageUrl ? [c.imageUrl] : [];
@@ -174,7 +173,6 @@ function nodeTimeText(node: { traceContent?: string; traceTime?: string }): stri
   return FARM_WORK_NODES.has(node.traceContent ?? '') ? t.split(' ')[0] : t;
 }
 
-const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
 // 果蔬重量按克展示（后端给 kg 数值）；非纯数字（规格串兜底）原样显示（row146）
 const weightDisplay = computed(() => {
   const w = product.value?.weight;
@@ -182,9 +180,6 @@ const weightDisplay = computed(() => {
   const n = Number(w);
   return Number.isFinite(n) ? `${Math.round(n * 1000 * 100) / 100} g` : String(w);
 });
-// 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底（与猪肉追溯同一张 store-default）。
-// row82：原来兜底用基地航拍图（base-panorama），门店卡里显示成一张农田远景、被客户判为「图片显示有误」。
-const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 </script>
 
 <style lang="scss" scoped>
@@ -356,23 +351,23 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
   font-size: 12.5px;
   color: #7a9a85;
 }
-/* 一证多图：证书图横向并排 + 统一尺寸（各占等分宽 + 固定纵横比 → 三张同宽同高一样大），row34/row39 */
-.v-cert__imgs {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 10px;
+/* 证书图卡位：整宽 + 竖版 A4 比例（1:1.4）+ 浅底 contain，单图与轮播共用同一套观感。
+   圆角跟随 TraceCarousel 自带的 12px，两个分支切换时边角不跳。 */
+.v-cert__carousel {
+  border: 1px solid #eef0ef;
 }
 .v-cert__img {
-  flex: 1 1 0;
-  min-width: 0;
-  width: auto;
+  width: 100%;
   aspect-ratio: 1 / 1.4;
-  object-fit: contain;
   background: #fafafa;
-  border-radius: 10px;
-  display: block;
+  border-radius: 12px;
+  overflow: hidden;
   border: 1px solid #eef0ef;
+}
+/* 直接子选择器：只管卡位里那张缩略图，不误伤 PreviewImage 放大后挂在遮罩里的同名 img */
+.v-cert__img > :deep(img) {
+  width: 100%;
+  height: 100%;
 }
 .v-cert__item + .v-cert__item {
   margin-top: 12px;
@@ -385,46 +380,5 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefaultImg);
 .v-cert__meta .tr-kv {
   font-size: 13.5px;
   color: #333;
-}
-
-/* 销售门店 */
-.v-store__img {
-  width: 100%;
-  height: 150px;
-  margin: 8px 0 4px;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block;
-}
-.v-store {
-  margin-top: 2px;
-}
-.v-store__row {
-  display: flex;
-  /* 顶对齐：地址折行成多行时，图标与 label 跟首行对齐，不被整块垂直居中 */
-  align-items: flex-start;
-  gap: 7px;
-  padding: 5px 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-}
-.v-store__ic {
-  flex: 0 0 auto;
-  margin-top: 2px; /* 16px 图标在 21px 行高里视觉居首行 */
-}
-.v-store__k {
-  color: #808680;
-}
-/* 门店地址自动换行显示全：label 不缩，地址值占满剩余宽度、超长折行不截断 */
-.v-store__k--addr {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-.v-store__addr {
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
-  word-break: break-word;
 }
 </style>

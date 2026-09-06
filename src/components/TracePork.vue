@@ -103,21 +103,8 @@
       <img class="p-base__thumb" :src="porkBaseThumb" alt="" />
     </div>
 
-    <!-- 销售门店（row61：样式与果蔬追溯一致——上图片，下门店名称/地址） -->
-    <div v-if="showStore" class="p-card">
-      <TraceSectionTitle title="销售门店" />
-      <img class="p-store__img" :src="storeImage" alt="门店" />
-      <div class="p-store">
-        <div v-if="store?.name" class="p-store__row">
-          <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9 L5 4 H19 L20 9 M4 9 V20 H20 V9 M4 9 H20" /></svg>
-          <span class="p-store__k">门店名称：</span><span>{{ store.name }}</span>
-        </div>
-        <div v-if="store?.address" class="p-store__row">
-          <svg class="p-store__ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f7c44" stroke-width="1.6" stroke-linejoin="round"><path d="M12 22 C12 22 5 15 5 9 A7 7 0 0 1 19 9 C19 15 12 22 12 22 Z" /><circle cx="12" cy="9" r="2.5" /></svg>
-          <span class="p-store__k p-store__k--addr">门店地址：</span><span class="p-store__addr">{{ store.address }}</span>
-        </div>
-      </div>
-    </div>
+    <!-- 销售门店（与果蔬追溯同一张卡） -->
+    <TraceStoreCard :store="store" />
   </TraceLayout>
 </template>
 
@@ -128,9 +115,9 @@ import { traceContentLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
+import TraceStoreCard from './TraceStoreCard.vue';
 import IconArrow from './IconArrow.vue';
 import porkBaseThumb from '@/assets/base/pork-base-thumb.jpg';
-import storeDefault from '@/assets/base/store-default.jpg';
 import cutFrontLeg from '@/assets/pork-cut/front-leg.png';
 import cutPorkBelly from '@/assets/pork-cut/pork-belly.png';
 import cutRibs from '@/assets/pork-cut/ribs.png';
@@ -207,9 +194,6 @@ const showGrowth = computed(() => growthRecords.value.length >= (props.trace.gro
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
 );
-const showStore = computed(() => !!store.value && (!!store.value.name || !!store.value.address));
-// 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底
-const storeImage = computed(() => store.value?.imageUrl || storeDefault);
 </script>
 
 <style lang="scss" scoped>
@@ -389,46 +373,5 @@ const storeImage = computed(() => store.value?.imageUrl || storeDefault);
   border-radius: 10px;
   object-fit: cover;
   display: block;
-}
-
-/* 销售门店（row61：与果蔬追溯一致——上图片，下门店名称/地址） */
-.p-store__img {
-  width: 100%;
-  height: 150px;
-  margin: 8px 0 4px;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block;
-}
-.p-store {
-  margin-top: 2px;
-}
-.p-store__row {
-  display: flex;
-  /* 顶对齐：地址折行成多行时，图标与 label 跟首行对齐，不被整块垂直居中 */
-  align-items: flex-start;
-  gap: 7px;
-  padding: 5px 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-}
-.p-store__ic {
-  flex: 0 0 auto;
-  margin-top: 2px; /* 16px 图标在 21px 行高里视觉居首行 */
-}
-.p-store__k {
-  color: #808680;
-}
-/* 门店地址自动换行显示全：label 不缩，地址值占满剩余宽度、超长折行不截断 */
-.p-store__k--addr {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-.p-store__addr {
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
-  word-break: break-word;
 }
 </style>
