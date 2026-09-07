@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 /**
  * 点击放大预览（替代 el-image preview-src-list）。
@@ -67,10 +67,17 @@ function step(delta: number) {
   resetScroll();
 }
 
-function resetScroll() {
-  if (mask.value) {
-    mask.value.scrollTop = 0;
+async function resetScroll() {
+  // 必须等 DOM 刷完：zoomed 刚变，.pv--zoom 的宽度还没落到元素上，
+  // 这时读 scrollWidth 拿到的是上一态的值，横向居中会算错。
+  await nextTick();
+  const el = mask.value;
+  if (!el) {
+    return;
   }
+  el.scrollTop = 0;
+  // 放大态横向居中：证书正文在中间，停在最左边先看到的是白边
+  el.scrollLeft = zoomed.value ? Math.max(0, (el.scrollWidth - el.clientWidth) / 2) : 0;
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -137,14 +144,17 @@ onBeforeUnmount(() => {
   object-fit: contain;
   cursor: zoom-in;
 }
-/* 放大态：按屏宽铺满、纵向滚动看细节（竖版证书缩进一屏后正文字号太小） */
+/* 放大态：恒定放大到 2.2 倍屏宽，双向滚动看正文细节。
+   ⚠️ 不能写 width:100% —— 竖版证书（本项目实拍 1080×1479，宽高比 0.73）在 contain 态本来就是
+   按宽受限、已经铺满屏宽了，再设 100% 前后一个像素都不变，点下去像没反应，正文照样看不清。
+   页面还禁了双指缩放（index.html 的 user-scalable=no），所以这里必须自己给出真实倍率。 */
 .pv--zoom {
   display: block;
-  overflow-y: auto;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 .pv--zoom .pv__img {
-  width: 100%;
+  width: 220%;
   height: auto;
   max-width: none;
   max-height: none;
