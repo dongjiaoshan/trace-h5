@@ -4,8 +4,9 @@
     <div ref="vp" class="tc__vp" @scroll="onScroll">
       <template v-if="images.length">
         <div v-for="(src, i) in images" :key="i" class="tc__slide" :style="{ aspectRatio: ratio, background: bg }">
-          <!-- preview 开启时走 PreviewImage：卡位里看不清的图（如证书）点一下能按屏宽放大 -->
-          <PreviewImage v-if="preview" :src="src" :fit="fit" fit-width />
+          <!-- preview 开启时走 PreviewImage：卡位里看不清的图（如证书）点一下全屏看；
+               传整组 images + 下标，全屏态里可直接左右翻同一证的其余页 -->
+          <PreviewImage v-if="preview" :src="src" :fit="fit" :list="images" :index="i" />
           <img v-else :src="src" alt="" :style="{ objectFit: fit }" />
         </div>
       </template>
@@ -48,7 +49,7 @@ const props = withDefaults(
      */
     bg?: string;
     /**
-     * 点击图片放大查看（放大后按屏宽铺满、可上下滚动）。默认 false = 图片纯展示。
+     * 点击图片全屏查看（全屏态可左右切同组图、点图按屏宽放大）。默认 false = 图片纯展示。
      * 证书这类竖版长图在卡位里正文看不清，必须能点开。
      */
     preview?: boolean;

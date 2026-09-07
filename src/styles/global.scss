@@ -17,20 +17,3 @@ body {
 img {
   border: 0;
 }
-
-/* 简易图片预览遮罩 */
-.img-preview-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.img-preview-mask img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}

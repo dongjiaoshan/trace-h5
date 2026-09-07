@@ -90,9 +90,9 @@
           bg="#fff"
           preview
         />
-        <!-- 单图：维持整宽单张的原版式，同样可以点开放大 -->
+        <!-- 单图：维持整宽单张的原版式，同样可以点开全屏 -->
         <div v-else-if="certImages(cert).length" class="v-cert__img">
-          <PreviewImage :src="certImages(cert)[0]" fit="contain" fit-width />
+          <PreviewImage :src="certImages(cert)[0]" fit="contain" />
         </div>
         <div class="v-cert__meta">
           <div v-if="cert.issuer" class="tr-kv"><span class="tr-kv__k">认证机构：</span><span>{{ cert.issuer }}</span></div>

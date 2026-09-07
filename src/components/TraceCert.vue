@@ -13,9 +13,9 @@
         bg="#fff"
         preview
       />
-      <!-- 单图：维持整宽单张的原版式，同样可以点开放大 -->
+      <!-- 单图：维持整宽单张的原版式，同样可以点开全屏 -->
       <div v-else-if="certImages(c).length" class="cert-img">
-        <PreviewImage :src="certImages(c)[0]" fit="contain" fit-width />
+        <PreviewImage :src="certImages(c)[0]" fit="contain" />
       </div>
       <div v-if="c.issuer" class="t-kv">
         <span class="t-kv__label">颁发机构</span>

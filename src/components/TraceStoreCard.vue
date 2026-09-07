@@ -90,10 +90,12 @@ const image = computed(() => props.store?.imageUrl || storeDefault);
   word-break: break-word;
 }
 
-/* 底部二维码块：左二维码 / 中竖分割线 / 右文案 + 描边按钮 */
+/* 底部二维码块：左二维码 / 中竖分割线 / 右文案 + 描边按钮。
+   三者按内容取宽、整块在卡内水平居中（右侧不再留一大片空白）。 */
 .sc__qr {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
   margin-top: 12px;
   padding-top: 12px;
@@ -114,8 +116,10 @@ const image = computed(() => props.store?.imageUrl || storeDefault);
   align-self: stretch;
   background: #e4ebe6;
 }
+/* 文案列按内容取宽（不再 flex:1 撑满剩余宽度，否则整块被顶到左边）；
+   窄屏放不下时可收缩，文案照常折行 */
 .sc__qr-side {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
