@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test test/*.test.mjs",
     "dev": "vite serve --mode development",
     "build:prod": "vue-tsc -b && vite build --mode production",
     "build:staging": "vue-tsc -b && vite build --mode staging",

@@ -8,6 +8,7 @@
  */
 import http from './http';
 import type { ApiResult, PublicTraceVo } from './types';
+import { correctPigDisplay } from './pig-display-correction';
 
 export interface TraceLoadResult {
   data: PublicTraceVo | null;
@@ -26,7 +27,7 @@ export async function loadTrace(code: string): Promise<TraceLoadResult> {
     if (!data) {
       return { data: null, errorKey: 'notFound' };
     }
-    return { data, errorKey: '' };
+    return { data: correctPigDisplay(data), errorKey: '' };
   } catch {
     return { data: null, errorKey: 'loadFailed' };
   }
