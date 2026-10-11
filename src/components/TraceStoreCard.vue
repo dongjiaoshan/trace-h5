@@ -19,7 +19,7 @@
       <i class="sc__qr-div" />
       <div class="sc__qr-side">
         <div class="sc__qr-tags">溯源｜售后｜订单</div>
-        <div class="sc__qr-tip">欢迎咨询</div>
+        <div class="sc__qr-tip">欢迎咨询<a v-if="managerPhone" class="sc__qr-phone" :href="`tel:${managerPhone}`">{{ managerPhone }}</a></div>
         <!-- 纯展示描边按钮：二维码本身就是给顾客扫的，这里不绑任何点击行为 -->
         <span class="sc__qr-btn">扫码联系客服</span>
       </div>
@@ -39,6 +39,7 @@ const props = defineProps<{ store?: TraceStoreVo | null }>();
 const show = computed(() => !!props.store && (!!props.store.name || !!props.store.address));
 // 门店配图：优先门店自有图（image_oss_id），无则默认门店门面图兜底
 const image = computed(() => props.store?.imageUrl || storeDefault);
+const managerPhone = computed(() => props.store?.managerPhone?.trim() || '');
 </script>
 
 <style lang="scss" scoped>
@@ -116,8 +117,7 @@ const image = computed(() => props.store?.imageUrl || storeDefault);
   align-self: stretch;
   background: #e4ebe6;
 }
-/* 文案列按内容取宽（不再 flex:1 撑满剩余宽度，否则整块被顶到左边）；
-   窄屏放不下时可收缩，文案照常折行 */
+/* 文案列按内容取宽；咨询与手机号保持同一行。 */
 .sc__qr-side {
   flex: 0 1 auto;
   min-width: 0;
@@ -135,6 +135,13 @@ const image = computed(() => props.store?.imageUrl || storeDefault);
 .sc__qr-tip {
   font-size: 12.5px;
   color: #808680;
+  white-space: nowrap;
+}
+.sc__qr-phone {
+  margin-left: 5px;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
 }
 .sc__qr-btn {
   display: inline-block;
@@ -146,5 +153,16 @@ const image = computed(() => props.store?.imageUrl || storeDefault);
   font-weight: 600;
   color: #2f7c44;
   white-space: nowrap;
+}
+/* 窄屏给完整手机号留出空间，字号与「欢迎咨询」一致。 */
+@media (max-width: 360px) {
+  .sc__qr {
+    gap: 10px;
+  }
+  .sc__qr-img {
+    flex-basis: 80px;
+    width: 80px;
+    height: 80px;
+  }
 }
 </style>

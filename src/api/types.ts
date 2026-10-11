@@ -137,6 +137,8 @@ export interface TraceStoreVo {
   name?: string;
   /** 门店地址 */
   address?: string;
+  /** 门店配置的店长电话；未配置时为空。 */
+  managerPhone?: string;
   /** 门店配图 URL（后端由 image_oss_id 解析；无图为空，前端默认图兜底） */
   imageUrl?: string;
   /** 店长微信二维码图 URL（后端由 manager_wechat_oss_id 解析；无图为空，前端整块隐藏、不做默认图兜底） */
