@@ -8,7 +8,7 @@ const source = readFileSync(new URL('../src/api/pig-display-correction.ts', impo
 const { outputText } = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 }
 });
-const { correctPigDisplay } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+const { correctPigDisplay, PIG_DISPLAY_CORRECTIONS } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 
 const originalEarNo = '01-01-2-251120-025';
 const correctedEarNo = '01-01-2-251001-025';
@@ -197,5 +197,128 @@ test('only accepts corrected marketing ages in the inclusive range 366 to 380', 
     } else {
       assert.deepEqual(corrected, source, 'an out-of-range correction must not fabricate a birthday or clamp an age');
     }
+  }
+});
+
+const twentyDayCorrections = PIG_DISPLAY_CORRECTIONS.filter((entry) => entry.addDays === 20);
+// 从原 Excel 的黄色单元格独立提取，校验名单与配置一致。
+const twentyDayFixtures = readFileSync(new URL('./fixtures/pig-birth-correction-20-days.csv', import.meta.url), 'utf8')
+  .trim().split('\n').slice(1).map((line) => {
+    const [earNo, recordedBirthDate, birthDate] = line.split(',');
+    return { earNo, recordedBirthDate, birthDate };
+  });
+const twentyDayExpected = {
+  '2025-10-16': { birthDate: '2025-09-26', ageDays: 381, growthAge: 156, medicationAge: 128 },
+  '2025-10-17': { birthDate: '2025-09-27', ageDays: 380, growthAge: 155, medicationAge: 127 },
+  '2025-11-09': { birthDate: '2025-10-20', ageDays: 357, growthAge: 132, medicationAge: 104 },
+  '2025-11-15': { birthDate: '2025-10-26', ageDays: 351, growthAge: 126, medicationAge: 98 },
+  '2025-11-16': { birthDate: '2025-10-27', ageDays: 350, growthAge: 125, medicationAge: 97 },
+  '2025-11-20': { birthDate: '2025-10-31', ageDays: 346, growthAge: 121, medicationAge: 93 },
+  '2025-11-24': { birthDate: '2025-11-04', ageDays: 342, growthAge: 117, medicationAge: 89 },
+  '2025-11-30': { birthDate: '2025-11-10', ageDays: 336, growthAge: 111, medicationAge: 83 },
+  '2025-12-02': { birthDate: '2025-11-12', ageDays: 334, growthAge: 109, medicationAge: 81 },
+  '2025-12-03': { birthDate: '2025-11-13', ageDays: 333, growthAge: 108, medicationAge: 80 },
+  '2025-12-05': { birthDate: '2025-11-15', ageDays: 331, growthAge: 106, medicationAge: 78 }
+};
+
+function twentyDayFixture(entry) {
+  const source = traceFixture();
+  const expected = twentyDayExpected[entry.recordedBirthDate];
+  Object.assign(source.pig, {
+    earNo: entry.earNo,
+    birthDate: entry.recordedBirthDate,
+    marketDate: '2026-10-12 10:00:00',
+    ageDays: expected.ageDays - 20
+  });
+  source.growthRecords[0].ageDays = expected.growthAge - 20;
+  source.medications[0].ageDays = expected.medicationAge - 20;
+  source.timeline[0].traceTime = source.pig.marketDate;
+  return source;
+}
+
+test('the twenty-day batch contains 87 unique pigs without changing the three separate corrections', () => {
+  assert.equal(twentyDayCorrections.length, 87);
+  assert.equal(twentyDayFixtures.length, 87);
+  assert.deepEqual(
+    twentyDayCorrections.map(({ earNo, recordedBirthDate }) => ({ earNo, recordedBirthDate })).sort((a, b) => a.earNo.localeCompare(b.earNo)),
+    twentyDayFixtures.map(({ earNo, recordedBirthDate }) => ({ earNo, recordedBirthDate }))
+  );
+  assert.equal(new Set(PIG_DISPLAY_CORRECTIONS.map((entry) => entry.earNo)).size, 90);
+  assert.ok(twentyDayCorrections.every((entry) => entry.marketingAgeRange === undefined));
+  assert.ok(twentyDayCorrections.every((entry) => entry.correctEarDate === false));
+  assert.deepEqual(
+    PIG_DISPLAY_CORRECTIONS.filter((entry) => entry.addDays !== 20),
+    [
+      { earNo: '01-01-2-251120-025', recordedBirthDate: '2025-11-20', addDays: 50, marketingAgeRange: { min: 366, max: 380 } },
+      { earNo: '01-01-2-251120-024', recordedBirthDate: '2025-11-20', addDays: 50, marketingAgeRange: { min: 366, max: 380 } },
+      { earNo: '01-01-1-251206-006', recordedBirthDate: '2025-12-06', addDays: 65, marketingAgeRange: { min: 366, max: 380 } }
+    ]
+  );
+});
+
+test('all 87 pigs move exactly 20 days, including marketing ages below 366 and above 380', () => {
+  for (const entry of twentyDayFixtures) {
+    const source = twentyDayFixture(entry);
+    const before = structuredClone(source);
+    const expected = twentyDayExpected[entry.recordedBirthDate];
+    const corrected = correctPigDisplay(source);
+    assert.equal(corrected.pig.birthDate, expected.birthDate, entry.earNo);
+    assert.equal(corrected.pig.birthDate, entry.birthDate);
+    assert.equal(corrected.pig.earNo, entry.earNo);
+    assert.equal(corrected.pig.ageDays, expected.ageDays);
+    assert.equal(corrected.growthRecords[0].ageDays, expected.growthAge);
+    assert.equal(corrected.medications[0].ageDays, expected.medicationAge);
+    assert.equal(corrected.pig.marketDate, before.pig.marketDate);
+    assert.equal(corrected.growthRecords[0].date, before.growthRecords[0].date);
+    assert.equal(corrected.medications[0].date, before.medications[0].date);
+    assert.deepEqual(corrected.timeline, before.timeline);
+    assert.deepEqual(corrected.product, before.product);
+    assert.deepEqual(corrected.pedigree, before.pedigree);
+    assert.deepEqual(source, before);
+  }
+});
+
+test('the twenty-day batch remains idempotent when the backend birthday has already been corrected', () => {
+  for (const entry of twentyDayCorrections) {
+    const source = twentyDayFixture(entry);
+    const corrected = correctPigDisplay(source);
+    assert.deepEqual(correctPigDisplay(corrected), corrected);
+    const backendCorrected = structuredClone(source);
+    backendCorrected.pig.birthDate = twentyDayExpected[entry.recordedBirthDate].birthDate;
+    assert.deepEqual(correctPigDisplay(backendCorrected), corrected);
+    source.pig.birthDate = '2025-10-15';
+    assert.strictEqual(correctPigDisplay(source), source);
+  }
+});
+
+test('adding a marketing date never restores the original birthday of a twenty-day pig', () => {
+  const entry = twentyDayCorrections.find((item) => item.recordedBirthDate === '2025-10-16');
+  const source = twentyDayFixture(entry);
+  delete source.pig.marketDate;
+  const beforeMarketing = correctPigDisplay(source);
+  assert.equal(beforeMarketing.pig.birthDate, '2025-09-26');
+  assert.equal(beforeMarketing.pig.ageDays, undefined);
+  source.pig.marketDate = '2026-10-12 10:00:00';
+  const afterMarketing = correctPigDisplay(source);
+  assert.equal(afterMarketing.pig.birthDate, beforeMarketing.pig.birthDate);
+  assert.equal(afterMarketing.pig.ageDays, 381);
+});
+
+test('a twenty-day correction requires the complete original ear number and matching birthday', () => {
+  const entry = twentyDayCorrections.find((item) => item.earNo === '01-01-2-251016-009');
+  for (const change of [
+    { earNo: '01-01-1-251016-009' },
+    { earNo: '01-01-2-251016-004' },
+    { earNo: '01-01-2-251015-009', birthDate: '2025-10-15' },
+    { earNo: entry.earNo, birthDate: '2025-10-17' },
+    { earNo: entry.earNo, birthDate: null }
+  ]) {
+    const source = twentyDayFixture(entry);
+    Object.assign(source.pig, change);
+    assert.strictEqual(correctPigDisplay(source), source);
+  }
+  for (const codeType of ['veg', 'gift']) {
+    const source = { ...twentyDayFixture(entry), codeType };
+    assert.strictEqual(correctPigDisplay(source), source);
   }
 });
