@@ -139,7 +139,7 @@ const managerPhone = computed(() => props.store?.managerPhone?.trim() || '');
 }
 .sc__qr-phone {
   margin-left: 5px;
-  color: inherit;
+  color: #1677ff;
   font: inherit;
   text-decoration: none;
 }
