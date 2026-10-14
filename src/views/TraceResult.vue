@@ -51,15 +51,23 @@ const ERROR_TEXT: Record<string, string> = {
   loadFailed: '加载失败，请稍后重试'
 };
 const errorText = computed(() => ERROR_TEXT[errorKey.value] ?? '加载失败，请稍后重试');
+function traceTitle(codeType?: PublicTraceVo['codeType']): string {
+  if (codeType === 'veg') return '东角山果蔬追溯码';
+  if (codeType === 'pork') return '东角山猪肉追溯码';
+  return '产品追溯';
+}
+let latestRequest = 0;
 
 async function fetchData() {
+  const request = ++latestRequest;
   loading.value = true;
+  document.title = '产品追溯';
   const res = await loadTrace(code.value);
+  if (request !== latestRequest) return;
   trace.value = res.data;
   errorKey.value = res.errorKey;
   loading.value = false;
-  // 设置页面标题（C 端浏览器 tab）
-  document.title = res.data?.codeType === 'veg' ? '蔬果追溯' : '猪肉追溯';
+  document.title = traceTitle(res.data?.codeType);
 }
 
 // 下钻子页：grow / cert / plot-records（同一 code，各自重新进路由拉数）
