@@ -7,7 +7,7 @@
         <div class="pr-dot" :style="{ background: dotColor(r.workType) }"></div>
         <div class="pr-content">
           <div class="pr-head">
-            <span class="pr-type">{{ farmWorkTypeLabel(r.workType) }}</span>
+            <span class="pr-type">{{ plotRecordLabel(r) }}</span>
             <span v-if="r.date" class="pr-date">{{ r.date }}</span>
           </div>
           <div v-if="r.detail" class="pr-detail">{{ r.detail }}</div>
@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
-import { farmWorkTypeLabel } from '@/api/labels';
+import { plotRecordLabel } from '@/api/labels';
 
 const props = defineProps<{ trace: PublicTraceVo }>();
 

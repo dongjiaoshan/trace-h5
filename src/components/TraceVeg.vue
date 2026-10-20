@@ -110,7 +110,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
-import { traceContentLabel, farmWorkTypeLabel } from '@/api/labels';
+import { traceContentLabel, plotRecordLabel } from '@/api/labels';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
@@ -154,11 +154,14 @@ const showPlotRecords = computed(
 const workSummary = computed(() => {
   const recs = plotRecords.value;
   if (recs.length === 0) return '查看农事详情';
-  const counts: Record<string, number> = {};
+  const counts = new Map<string, { label: string; n: number }>();
   recs.forEach((r) => {
-    if (r.workType) counts[r.workType] = (counts[r.workType] ?? 0) + 1;
+    if (!r.workType) return;
+    const c = counts.get(r.workType);
+    if (c) c.n += 1;
+    else counts.set(r.workType, { label: plotRecordLabel(r), n: 1 });
   });
-  const parts = Object.entries(counts).map(([k, n]) => `${farmWorkTypeLabel(k)} ${n} 次`);
+  const parts = [...counts.values()].map((c) => `${c.label} ${c.n} 次`);
   return parts.length ? parts.join(' / ') : `共 ${recs.length} 条`;
 });
 

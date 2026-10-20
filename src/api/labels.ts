@@ -76,6 +76,11 @@ export function farmWorkTypeLabel(code?: string): string {
   return FARM_WORK_TYPE_LABELS[code] ?? code;
 }
 
+/** 农事记录行的中文名：后端按字典给的优先（甲方改名即生效），没有再用内置对照。 */
+export function plotRecordLabel(r: { workType?: string; workTypeLabel?: string }): string {
+  return r.workTypeLabel || farmWorkTypeLabel(r.workType);
+}
+
 /** pig.sex 码 → 中文 label（未知码返原码值）。 */
 export function pigSexLabel(code?: string): string {
   if (!code) return '';
