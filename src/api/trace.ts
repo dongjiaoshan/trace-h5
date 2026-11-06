@@ -32,3 +32,29 @@ export async function loadTrace(code: string): Promise<TraceLoadResult> {
     return { data: null, errorKey: 'loadFailed' };
   }
 }
+
+export interface StoreTraceLoadResult {
+  /** 门店不存在为 null；门店当天没有可追溯的猪时 data.pig 为空（页面显示空态） */
+  data: PublicTraceVo | null;
+  errorKey: '' | 'missingStore' | 'storeNotFound' | 'loadFailed';
+}
+
+/**
+ * 按门店标识拉门店猪只追溯（V7 row40，GET /djs/public/trace/store/{storeKey}）。
+ * 门店编码原样传值（encodeURIComponent 防特殊字符打断路径）。
+ */
+export async function loadStoreTrace(storeKey: string): Promise<StoreTraceLoadResult> {
+  if (!storeKey) {
+    return { data: null, errorKey: 'missingStore' };
+  }
+  try {
+    const res = await http.get<ApiResult<PublicTraceVo>>(`/djs/public/trace/store/${encodeURIComponent(storeKey)}`);
+    const data = res.data?.data ?? null;
+    if (!data) {
+      return { data: null, errorKey: 'storeNotFound' };
+    }
+    return { data: data.pig ? correctPigDisplay(data) : data, errorKey: '' };
+  } catch {
+    return { data: null, errorKey: 'loadFailed' };
+  }
+}

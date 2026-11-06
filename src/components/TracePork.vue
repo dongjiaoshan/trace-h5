@@ -2,41 +2,61 @@
   <TraceLayout theme="pork">
     <!-- 产品 + 猪只信息 -->
     <div class="p-card">
-      <TraceSectionTitle title="产品信息" />
-      <!-- 产品图独立整块显示，版式与果蔬追溯（TraceVeg）一致：方形卡位 + fill
-           （产品配图 85% 是 1:1 设计稿，方卡位下铺满零裁切；少数非方实拍图靠拉伸填满、整图仍完整可见）。
-           部位抠图兜底走另一套卡位参数，见 cutFallback。 -->
-      <TraceCarousel
-        :images="productImages"
-        :ratio="productRatio"
-        :fit="productFit"
-        :bg="productBg"
-      />
-      <div class="p-kvs">
-        <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
-        <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
-        <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
-        <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">实际重量：</span><span>{{ product.weight }}</span></div>
-        <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
-      </div>
+      <!-- 门店猪只追溯码（storeMode，V7 row40）：二维码挂在门店、不对应某一件货，
+           不显示产品信息，顶部换成「屠宰到店 / 有机果蔬慢养」两格 + 猪只大图 -->
+      <template v-if="storeMode">
+        <div v-if="slaughterHours !== undefined || slowDays !== undefined" class="p-stats">
+          <div v-if="slaughterHours !== undefined" class="p-stats__item">
+            <span class="p-stats__label">屠宰<br />到店</span>
+            <span class="p-stats__num">{{ slaughterHours }}</span>
+            <span class="p-stats__unit">H<br />小时</span>
+          </div>
+          <i v-if="slaughterHours !== undefined && slowDays !== undefined" class="p-stats__div" />
+          <div v-if="slowDays !== undefined" class="p-stats__item">
+            <span class="p-stats__label">有机果<br />蔬慢养</span>
+            <span class="p-stats__num">{{ slowDays }}</span>
+            <span class="p-stats__unit">DAY<br />天</span>
+          </div>
+        </div>
+        <TraceCarousel :images="storePigImages" class="p-carousel" />
+      </template>
+      <template v-else>
+        <TraceSectionTitle title="产品信息" />
+        <!-- 产品图独立整块显示，版式与果蔬追溯（TraceVeg）一致：方形卡位 + fill
+             （产品配图 85% 是 1:1 设计稿，方卡位下铺满零裁切；少数非方实拍图靠拉伸填满、整图仍完整可见）。
+             部位抠图兜底走另一套卡位参数，见 cutFallback。 -->
+        <TraceCarousel
+          :images="productImages"
+          :ratio="productRatio"
+          :fit="productFit"
+          :bg="productBg"
+        />
+        <div class="p-kvs">
+          <div v-if="product?.name" class="tr-kv"><span class="tr-kv__k">商品名称：</span><span>{{ product.name }}</span></div>
+          <div v-if="product?.produceNo" class="tr-kv"><span class="tr-kv__k">生产编号：</span><span class="tr-kv__code">{{ product.produceNo }}</span></div>
+          <div v-if="product?.spec" class="tr-kv"><span class="tr-kv__k">产品规格：</span><span>{{ product.spec }}</span></div>
+          <div v-if="product?.weight" class="tr-kv"><span class="tr-kv__k">实际重量：</span><span>{{ product.weight }}</span></div>
+          <div v-if="product?.description" class="tr-kv"><span class="tr-kv__k">产品描述：</span><span>{{ product.description }}</span></div>
+        </div>
+      </template>
 
       <!-- 猪只追溯（照片轮播 + 耳号整行 + 两列 KV）。
            照片轮播放在本区块标题之下：归属清晰（是这头猪的照片，不是产品图），
            且与上方 1:1 产品图隔开，避免两张整宽大图连排把首屏顶掉。 -->
       <TraceSectionTitle title="猪只追溯" />
-      <TraceCarousel v-if="pigImages.length" :images="pigImages" class="p-carousel" />
+      <TraceCarousel v-if="!storeMode && pigImages.length" :images="pigImages" class="p-carousel" />
       <div v-if="pig?.earNo" class="p-pig__ear"><span class="tr-kv__k">耳号：</span><span class="tr-chip">{{ pig.earNo }}</span></div>
-      <div class="p-pig__cols">
+      <div class="p-pig__cols" :class="{ 'p-pig__cols--store': storeMode }">
         <div v-if="pig?.birthDate || pig?.marketDate" class="p-pig__col">
           <div v-if="pig?.birthDate" class="tr-kv"><span class="tr-kv__k">出生日：</span><span class="tr-kv__code">{{ pig.birthDate }}</span></div>
           <div v-if="pig?.marketDate" class="tr-kv"><span class="tr-kv__k">出栏日：</span><span class="tr-kv__code">{{ pig.marketDate }}</span></div>
         </div>
         <div
-          v-if="pig?.ageDays != null || pig?.birthWeight || pig?.marketWeight"
+          v-if="pig?.ageDays != null || (!storeMode && pig?.birthWeight) || pig?.marketWeight"
           class="p-pig__col p-pig__col--r"
         >
-          <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">日龄：</span><span>{{ pig.ageDays }} 天</span></div>
-          <div v-if="pig?.birthWeight" class="tr-kv"><span class="tr-kv__k">出生重：</span><span>{{ pig.birthWeight }}kg</span></div>
+          <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">{{ storeMode ? '出栏日龄：' : '日龄：' }}</span><span>{{ pig.ageDays }} 天</span></div>
+          <div v-if="!storeMode && pig?.birthWeight" class="tr-kv"><span class="tr-kv__k">出生重：</span><span>{{ pig.birthWeight }}kg</span></div>
           <div v-if="pig?.marketWeight" class="tr-kv"><span class="tr-kv__k">出栏重：</span><span>{{ pig.marketWeight }}kg</span></div>
         </div>
       </div>
@@ -112,6 +132,7 @@
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
 import { traceContentLabel } from '@/api/labels';
+import { slaughterToArrivalHours } from '@/api/store-trace';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
@@ -124,7 +145,15 @@ import cutRibs from '@/assets/pork-cut/ribs.png';
 import cutElbow from '@/assets/pork-cut/elbow.png';
 import cutPorkChop from '@/assets/pork-cut/pork-chop.png';
 
-const props = defineProps<{ trace: PublicTraceVo; code: string }>();
+const props = withDefaults(
+  defineProps<{
+    trace: PublicTraceVo;
+    code: string;
+    /** 门店猪只追溯码入口（/trace/store/:storeKey）：不显示产品信息，顶部换统计两格 + 猪只大图 */
+    storeMode?: boolean;
+  }>(),
+  { storeMode: false }
+);
 const emit = defineEmits<{ (e: 'go', target: string, query?: Record<string, string>): void }>();
 
 const product = computed(() => props.trace.product ?? null);
@@ -191,6 +220,12 @@ const showGrowth = computed(() => growthRecords.value.length >= (props.trace.gro
 // r131：时间轴每行只有「节点名 + 时间」，重量与操作人都不显示
 // （重量在顶部产品卡已有，操作人对顾客没有意义）。
 
+// 门店模式顶部两格：屠宰到店 = 到店节点 − 屠宰完成节点（整小时）；慢养天数取出栏日龄。缺数据的那格不显示。
+const slaughterHours = computed(() => slaughterToArrivalHours(props.trace.timeline));
+const slowDays = computed(() => (pig.value?.ageDays != null ? pig.value.ageDays : undefined));
+// 门店模式猪只大图：有生长照片用照片，没有用默认猪只图（门店码首屏不能空着一大块）
+const storePigImages = computed(() => (pigImages.value.length ? pigImages.value : [porkBaseThumb]));
+
 const showPedigree = computed(
   () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
 );
@@ -205,6 +240,40 @@ const showPedigree = computed(
   border-radius: 16px;
   padding: 14px 16px 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* 门店模式顶部统计两格（屠宰到店 / 有机果蔬慢养） */
+.p-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 2px 0 14px;
+}
+.p-stats__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #5a3020;
+}
+.p-stats__label {
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+}
+.p-stats__num {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.p-stats__unit {
+  font-size: 10px;
+  line-height: 1.3;
+}
+.p-stats__div {
+  width: 1px;
+  height: 34px;
+  background: #e2d6cc;
 }
 
 /* 产品信息 KV 块（产品图整块在上，KV 列在下 —— 与果蔬追溯 .v-kvs 同版式） */
@@ -237,6 +306,15 @@ const showPedigree = computed(
 }
 .p-pig__col--r {
   flex: 0 0 auto;
+}
+/* 门店模式右列标签是「出栏日龄：」（比「日龄：」多两个字），375 宽下会把左列的出栏日挤成两行：收紧列距和字号保持单行 */
+.p-pig__cols.p-pig__cols--store {
+  gap: 8px;
+}
+/* 选择器多叠一层 class，压过下面 `.p-pig__cols .tr-kv` 的 13.5px；360 宽两列合计约需 293px，容器 300px */
+.p-pig__cols.p-pig__cols--store .tr-kv {
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 .p-pig__cols .tr-kv {
   font-size: 13.5px;
