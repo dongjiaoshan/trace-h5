@@ -20,6 +20,7 @@ function traceFixture() {
       earNo: originalEarNo,
       birthDate: '2025-11-20',
       marketDate: '2026-10-04 19:48:36',
+      receiveDate: '2026-10-04 19:48:36',
       ageDays: 318,
       marketWeight: '139'
     },
@@ -31,7 +32,7 @@ function traceFixture() {
   };
 }
 
-test('corrects birth date and ear date segment; uses marketing day instead of today for age', () => {
+test('corrects birth date and ear date segment; uses reception day instead of today for age', () => {
   const source = traceFixture();
   const before = structuredClone(source);
   const result = correctPigDisplay(source);
@@ -86,6 +87,7 @@ test('leaves other pigs, other birthdays and non-pork records unchanged', () => 
 test('missing, invalid and pre-birth event dates do not create an age', () => {
   const source = traceFixture();
   source.pig.marketDate = undefined;
+  source.pig.receiveDate = undefined;
   source.growthRecords = [
     { date: '2026-02-30', ageDays: 102 },
     { date: '2025-09-30', ageDays: 0 },
@@ -123,7 +125,7 @@ test('applies the two added corrections with their own date, ear segment and age
     }
   ]) {
     const source = traceFixture();
-    Object.assign(source.pig, { earNo: entry.earNo, birthDate: entry.birthDate, marketDate: entry.marketDate, ageDays: entry.ageDays });
+    Object.assign(source.pig, { earNo: entry.earNo, birthDate: entry.birthDate, marketDate: entry.marketDate, receiveDate: entry.marketDate, ageDays: entry.ageDays });
     const original = structuredClone(source);
     const corrected = correctPigDisplay(source);
     assert.equal(corrected.pig.earNo, entry.correctedEarNo);
@@ -155,7 +157,7 @@ test('the female pig with the same birthday and sequence as the configured male 
 
 test('accepts an explicit future correction list and shifts leap days and year boundaries correctly', () => {
   const source = traceFixture();
-  Object.assign(source.pig, { earNo: '01-01-1-240301-009', birthDate: '2024-03-01', marketDate: '2025-03-01 10:00:00', ageDays: 365 });
+  Object.assign(source.pig, { earNo: '01-01-1-240301-009', birthDate: '2024-03-01', marketDate: '2025-03-01 10:00:00', receiveDate: '2025-03-01 10:00:00', ageDays: 365 });
   const correction = { earNo: source.pig.earNo, recordedBirthDate: source.pig.birthDate, addDays: 1 };
   assert.deepEqual(correctPigDisplay(source), source);
   const corrected = correctPigDisplay(source, [correction]);
@@ -163,7 +165,7 @@ test('accepts an explicit future correction list and shifts leap days and year b
   assert.equal(corrected.pig.earNo, '01-01-1-240229-009');
   assert.equal(corrected.pig.ageDays, 366);
 
-  Object.assign(source.pig, { earNo: '01-01-1-250101-009', birthDate: '2025-01-01', marketDate: '2026-01-01 10:00:00' });
+  Object.assign(source.pig, { earNo: '01-01-1-250101-009', birthDate: '2025-01-01', marketDate: '2026-01-01 10:00:00', receiveDate: '2026-01-01 10:00:00' });
   const acrossYear = correctPigDisplay(source, [{ earNo: source.pig.earNo, recordedBirthDate: source.pig.birthDate, addDays: 1 }]);
   assert.equal(acrossYear.pig.birthDate, '2024-12-31');
   assert.equal(acrossYear.pig.earNo, '01-01-1-241231-009');
@@ -189,7 +191,7 @@ test('only accepts corrected marketing ages in the inclusive range 366 to 380', 
     { marketDate: '2026-10-17 10:00:00', ageDays: 331, correctedAge: 381, accepted: false }
   ]) {
     const source = traceFixture();
-    Object.assign(source.pig, { marketDate: entry.marketDate, ageDays: entry.ageDays });
+    Object.assign(source.pig, { marketDate: entry.marketDate, receiveDate: entry.marketDate, ageDays: entry.ageDays });
     const corrected = correctPigDisplay(source);
     if (entry.accepted) {
       assert.equal(corrected.pig.ageDays, entry.correctedAge);
@@ -218,6 +220,7 @@ function twentyDayFixture(entry) {
     earNo: entry.earNo,
     birthDate: entry.recordedBirthDate,
     marketDate: '2026-10-12 10:00:00',
+    receiveDate: '2026-10-12 10:00:00',
     ageDays: expected.ageDays - 20
   });
   source.growthRecords[0].ageDays = expected.growthAge - 20;
@@ -281,14 +284,14 @@ test('the twenty-day batch remains idempotent when the backend birthday has alre
   }
 });
 
-test('adding a marketing date never restores the original birthday of a twenty-day pig', () => {
+test('adding a reception date never restores the original birthday of a twenty-day pig', () => {
   const entry = twentyDayCorrections.find((item) => item.recordedBirthDate === '2025-11-20');
   const source = twentyDayFixture(entry);
-  delete source.pig.marketDate;
+  delete source.pig.receiveDate;
   const beforeMarketing = correctPigDisplay(source);
   assert.equal(beforeMarketing.pig.birthDate, '2025-10-31');
   assert.equal(beforeMarketing.pig.ageDays, undefined);
-  source.pig.marketDate = '2026-10-12 10:00:00';
+  source.pig.receiveDate = '2026-10-12 10:00:00';
   const afterMarketing = correctPigDisplay(source);
   assert.equal(afterMarketing.pig.birthDate, beforeMarketing.pig.birthDate);
   assert.equal(afterMarketing.pig.ageDays, 346);
@@ -332,5 +335,24 @@ test('the 85 backend-corrected pigs are no longer configured and are displayed a
       Object.assign(source.pig, { earNo, birthDate, marketDate: '2026-10-20 10:00:00' });
       assert.strictEqual(correctPigDisplay(source), source);
     }
+  }
+});
+
+
+test('reception date controls corrected age even when marketing was days earlier', () => {
+  const source = traceFixture();
+  source.pig.receiveDate = '2026-10-07 00:10:00';
+  const corrected = correctPigDisplay(source);
+  assert.equal(corrected.pig.ageDays, 371);
+  assert.equal(corrected.pig.marketDate, '2026-10-04 19:48:36');
+  assert.equal(corrected.pig.receiveDate, source.pig.receiveDate);
+  assert.equal(corrected.growthRecords[0].ageDays, 151);
+});
+
+test('a missing reception date never falls back to marketing date for corrected age', () => {
+  const source = traceFixture();
+  for (const receiveDate of [undefined, null, 'bad']) {
+    source.pig.receiveDate = receiveDate;
+    assert.equal(correctPigDisplay(source).pig.ageDays, undefined);
   }
 });

@@ -59,10 +59,12 @@ export interface TracePigVo {
   breed?: string;
   /** 出生日期 */
   birthDate?: string;
-  /** 日龄（出栏日 − 出生日，天；任一缺为 null） */
+  /** 屠宰日龄（接收日 − 出生日，天；任一缺为 null） */
   ageDays?: number;
   /** 出栏日期（Pig 无列，用 marketing 事件时间兜底，可能为 null） */
   marketDate?: string;
+  /** 接收日期（该次出栏对应首笔燎毛入库时间；无接收记录为空） */
+  receiveDate?: string;
   /** 出生重（kg，源 pig.birth_weight；无为 null） */
   birthWeight?: string;
   /** 出栏重（kg，源 marketing.out_weight；无为 null） */

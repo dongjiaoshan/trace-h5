@@ -3,6 +3,11 @@ import TraceResult from '@/views/TraceResult.vue';
 import StoreTraceResult from '@/views/StoreTraceResult.vue';
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/trace/store/:storeKey/pork-base',
+    name: 'StorePorkBase',
+    component: StoreTraceResult
+  },
   // 门店猪只追溯码（V7 row40）：一个门店一个固定码，内容按门店当天到店最重的那头猪动态取。
   // 静态段 store 比下面的 :type 动态段优先匹配，不会被当成 type=store 落进按码追溯页。
   {

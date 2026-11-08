@@ -55,7 +55,7 @@
           v-if="pig?.ageDays != null || (!storeMode && pig?.birthWeight) || pig?.marketWeight"
           class="p-pig__col p-pig__col--r"
         >
-          <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">{{ storeMode ? '出栏日龄：' : '日龄：' }}</span><span>{{ pig.ageDays }} 天</span></div>
+          <div v-if="pig?.ageDays != null" class="tr-kv"><span class="tr-kv__k">{{ storeMode ? '屠宰日龄：' : '日龄：' }}</span><span>{{ pig.ageDays }} 天</span></div>
           <div v-if="!storeMode && pig?.birthWeight" class="tr-kv"><span class="tr-kv__k">出生重：</span><span>{{ pig.birthWeight }}kg</span></div>
           <div v-if="pig?.marketWeight" class="tr-kv"><span class="tr-kv__k">出栏重：</span><span>{{ pig.marketWeight }}kg</span></div>
         </div>
@@ -102,26 +102,20 @@
       <div class="tr-ped">
         <div v-if="pedigree?.sireEarNo" class="tr-ped__card">
           <span class="tr-ped__head tr-ped__head--sire">父系</span>
-          <div class="tr-ped__kv"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.sireEarNo }}</span></div>
-          <div v-if="pedigree.sireAgeDays != null" class="tr-ped__kv"><span class="tr-ped__k">日龄</span><span class="tr-ped__v">{{ pedigree.sireAgeDays }} 天</span></div>
+          <div class="tr-ped__kv tr-ped__kv--ear"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.sireEarNo }}</span></div>
+          <div class="tr-ped__kv"><span class="tr-ped__k">日龄</span><span class="tr-ped__v">{{ pedigree.sireAgeDays != null ? `${pedigree.sireAgeDays} 天` : '—' }}</span></div>
         </div>
         <div v-if="pedigree?.damEarNo" class="tr-ped__card">
           <span class="tr-ped__head tr-ped__head--dam">母系</span>
-          <div class="tr-ped__kv"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.damEarNo }}</span></div>
+          <div class="tr-ped__kv tr-ped__kv--ear"><span class="tr-ped__k">耳号</span><span class="tr-ped__v tr-ped__v--code">{{ pedigree.damEarNo }}</span></div>
           <div v-if="pedigree.damAgeDays != null" class="tr-ped__kv"><span class="tr-ped__k">日龄</span><span class="tr-ped__v">{{ pedigree.damAgeDays }} 天</span></div>
-          <div v-if="pedigree.damParity != null" class="tr-ped__kv"><span class="tr-ped__k">胎次</span><span class="tr-ped__v">第 {{ pedigree.damParity }} 胎</span></div>
+          <div class="tr-ped__kv tr-ped__kv--parity"><span class="tr-ped__k">胎次：</span><span class="tr-ped__v">{{ pedigree.damParity != null ? `${pedigree.damParity}胎` : '—' }}</span></div>
         </div>
       </div>
     </div>
 
     <!-- 养殖基地（下钻） -->
-    <div class="p-base" @click="emit('go', 'pork-base')">
-      <div class="p-base__main">
-        <div class="p-base__title">养殖基地</div>
-        <div class="p-base__sub">点击查看<IconArrow class="p-base__chev" :size="13" /></div>
-      </div>
-      <img class="p-base__thumb" :src="porkBaseThumb" alt="" />
-    </div>
+    <TracePorkBaseEntry @click="emit('go', 'pork-base')" />
 
     <!-- 销售门店（与果蔬追溯同一张卡） -->
     <TraceStoreCard :store="store" />
@@ -132,11 +126,11 @@
 import { computed } from 'vue';
 import type { PublicTraceVo } from '@/api/types';
 import { traceContentLabel } from '@/api/labels';
-import { slaughterToArrivalHours } from '@/api/store-trace';
 import TraceLayout from './TraceLayout.vue';
 import TraceSectionTitle from './TraceSectionTitle.vue';
 import TraceCarousel from './TraceCarousel.vue';
 import TraceStoreCard from './TraceStoreCard.vue';
+import TracePorkBaseEntry from './TracePorkBaseEntry.vue';
 import IconArrow from './IconArrow.vue';
 import porkBaseThumb from '@/assets/base/pork-base-thumb.jpg';
 import cutFrontLeg from '@/assets/pork-cut/front-leg.png';
@@ -220,9 +214,9 @@ const showGrowth = computed(() => growthRecords.value.length >= (props.trace.gro
 // r131：时间轴每行只有「节点名 + 时间」，重量与操作人都不显示
 // （重量在顶部产品卡已有，操作人对顾客没有意义）。
 
-// 门店模式顶部两格：屠宰到店 = 到店节点 − 屠宰完成节点（整小时）；慢养天数取出栏日龄。缺数据的那格不显示。
-const slaughterHours = computed(() => slaughterToArrivalHours(props.trace.timeline));
-const slowDays = computed(() => (pig.value?.ageDays != null ? pig.value.ageDays : undefined));
+// 门店模式顶部品牌展示值（甲方指定固定数字）。
+const slaughterHours = 6;
+const slowDays = 365;
 // 门店模式猪只大图：有生长照片用照片，没有用默认猪只图（门店码首屏不能空着一大块）
 const storePigImages = computed(() => (pigImages.value.length ? pigImages.value : [porkBaseThumb]));
 
@@ -307,14 +301,16 @@ const showPedigree = computed(
 .p-pig__col--r {
   flex: 0 0 auto;
 }
-/* 门店模式右列标签是「出栏日龄：」（比「日龄：」多两个字），375 宽下会把左列的出栏日挤成两行：收紧列距和字号保持单行 */
+/* 门店模式标签较长，收紧列距和字号；更窄的屏幕允许日期自然换行。 */
 .p-pig__cols.p-pig__cols--store {
   gap: 8px;
 }
 /* 选择器多叠一层 class，压过下面 `.p-pig__cols .tr-kv` 的 13.5px；360 宽两列合计约需 293px，容器 300px */
 .p-pig__cols.p-pig__cols--store .tr-kv {
   font-size: 12.5px;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 .p-pig__cols .tr-kv {
   font-size: 13.5px;
@@ -414,42 +410,20 @@ const showPedigree = computed(
   color: #9c5a30;
   font-variant-numeric: tabular-nums;
 }
-/* 养殖基地入口（浅绿底 · 左文右图） */
-.p-base {
+.tr-ped__card {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #eef6f0;
-  border-radius: 16px;
-  padding: 12px 14px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
+  flex-direction: column;
 }
-.p-base__main {
-  flex: 1;
-  min-width: 0;
+.tr-ped__head {
+  align-self: center;
 }
-.p-base__title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #26543a;
+.tr-ped__kv--ear .tr-ped__k {
+  font-size: 12px;
 }
-.p-base__sub {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #2f7c44;
-  display: flex;
-  align-items: center;
+.tr-ped__kv--parity {
+  gap: 0;
 }
-.p-base__chev {
-  margin-left: 3px;
-}
-.p-base__thumb {
-  flex: 0 0 96px;
-  width: 96px;
-  height: 60px;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block;
+.tr-ped__kv--parity .tr-ped__k {
+  flex-basis: 39px;
 }
 </style>

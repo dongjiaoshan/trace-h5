@@ -4,13 +4,14 @@
       <div v-if="loading" class="trace-state">加载中…</div>
       <div v-else-if="errorKey" class="trace-state trace-state--error">{{ errorText }}</div>
       <template v-else-if="trace">
-        <TracePork v-if="view === 'ready'" :trace="trace" :code="produceCode" store-mode @go="goSub" />
+        <TracePorkBase v-if="isBasePage" :trace="trace" />
+        <TracePork v-else-if="view === 'ready'" :trace="trace" :code="produceCode" store-mode @go="goSub" />
         <!-- 门店当天没有可追溯的猪：友好空态 + 门店卡（顾客照样能看到门店信息、联系店长） -->
         <TraceLayout v-else theme="pork">
           <div class="st-empty">
             <div class="st-empty__title">今日暂无猪肉追溯信息</div>
-            <div class="st-empty__sub">门店今天到店的猪肉登记后，这里会显示对应猪只的追溯信息</div>
           </div>
+          <TracePorkBaseEntry @click="goSub('pork-base')" />
           <TraceStoreCard :store="trace.store" />
         </TraceLayout>
       </template>
@@ -27,6 +28,8 @@ import { storeTraceCode, storeTraceView } from '@/api/store-trace';
 import TracePork from '@/components/TracePork.vue';
 import TraceLayout from '@/components/TraceLayout.vue';
 import TraceStoreCard from '@/components/TraceStoreCard.vue';
+import TracePorkBase from '@/components/TracePorkBase.vue';
+import TracePorkBaseEntry from '@/components/TracePorkBaseEntry.vue';
 
 /**
  * 门店猪只追溯码落地页（V7 row40）：/trace/store/:storeKey。
@@ -42,6 +45,7 @@ const trace = ref<PublicTraceVo | null>(null);
 const storeKey = computed(() => String(route.params.storeKey ?? ''));
 const view = computed(() => storeTraceView(trace.value));
 const produceCode = computed(() => storeTraceCode(trace.value));
+const isBasePage = computed(() => route.name === 'StorePorkBase');
 
 const ERROR_TEXT: Record<string, string> = {
   missingStore: '缺少门店标识',
@@ -62,8 +66,12 @@ async function fetchData() {
   loading.value = false;
 }
 
-// 下钻子页（生长记录 / 养殖基地）沿用按码追溯的子页，用选中那头猪的追溯码
+// 基地页按门店打开；生长记录仍使用当前选中猪只的追溯码。
 function goSub(target: string, query?: Record<string, string>) {
+  if (target === 'pork-base') {
+    router.push({ name: 'StorePorkBase', params: { storeKey: storeKey.value } });
+    return;
+  }
   if (!produceCode.value) return;
   router.push({ path: `/trace/${target}/${produceCode.value}`, query });
 }
@@ -100,14 +108,8 @@ onMounted(fetchData);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 .st-empty__title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #5a3020;
-}
-.st-empty__sub {
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #909399;
 }
 </style>

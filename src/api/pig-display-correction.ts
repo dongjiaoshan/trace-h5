@@ -67,9 +67,10 @@ export function correctPigDisplay(
     return trace;
   }
 
-  const ageDays = correctedAge(pig.marketDate, birthDay);
+  const marketingAge = correctedAge(pig.marketDate, birthDay);
+  const ageDays = correctedAge(pig.receiveDate, birthDay);
   const ageRange = correction.marketingAgeRange;
-  if (ageDays !== undefined && ageRange && (ageDays < ageRange.min || ageDays > ageRange.max)) {
+  if (marketingAge !== undefined && ageRange && (marketingAge < ageRange.min || marketingAge > ageRange.max)) {
     return trace;
   }
 
