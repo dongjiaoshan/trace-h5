@@ -16,7 +16,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      port: 5180
+      port: 5180,
+      // 本地 E2E 可显式指定独立后端，避免误连默认开发端口。
+      proxy: env.E2E_PROXY_TARGET
+        ? { '/dev-api': { target: env.E2E_PROXY_TARGET, changeOrigin: true, rewrite: (path) => path.replace(/^\/dev-api/, '') } }
+        : undefined
     },
     build: {
       outDir: 'dist',

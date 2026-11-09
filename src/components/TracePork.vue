@@ -96,7 +96,7 @@
       <span class="p-grow__chev"><IconArrow :size="16" /></span>
     </div>
 
-    <!-- 父系 / 母系信息（无父母耳号 → 后端返 null → 隐藏） -->
+    <!-- 父母系仅在商品猪肉追溯展示；门店猪只追溯按 D-0194 不展示，保留内部养殖资料。 -->
     <div v-if="showPedigree" class="p-card">
       <TraceSectionTitle title="父系 / 母系信息" />
       <div class="tr-ped">
@@ -221,7 +221,7 @@ const slowDays = 365;
 const storePigImages = computed(() => (pigImages.value.length ? pigImages.value : [porkBaseThumb]));
 
 const showPedigree = computed(
-  () => !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
+  () => !props.storeMode && !!pedigree.value && (!!pedigree.value.sireEarNo || !!pedigree.value.damEarNo)
 );
 </script>
 
