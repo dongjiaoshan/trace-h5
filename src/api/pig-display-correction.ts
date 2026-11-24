@@ -23,7 +23,9 @@ export const PIG_DISPLAY_CORRECTIONS: readonly PigDisplayCorrection[] = [
   { earNo: '01-01-1-251206-006', recordedBirthDate: '2025-12-06', addDays: 65, marketingAgeRange: DISPLAY_AGE_RANGE },
   // 出栏时后台生日尚未纠正的 2 头：出生日期提前 20 天展示，保留真实耳号。
   { earNo: '01-01-1-251120-009', recordedBirthDate: '2025-11-20', addDays: 20, correctEarDate: false },
-  { earNo: '01-01-1-251120-010', recordedBirthDate: '2025-11-20', addDays: 20, correctEarDate: false }
+  { earNo: '01-01-1-251120-010', recordedBirthDate: '2025-11-20', addDays: 20, correctEarDate: false },
+  // 2026-11-24 首次接收日龄确认 375 天，倒推生日为 2025-11-14。
+  { earNo: '01-01-1-260106-001', recordedBirthDate: '2026-01-06', addDays: 53, marketingAgeRange: DISPLAY_AGE_RANGE }
 ];
 
 /** 使用业务日期的日历日计算，避免浏览器时区和夏令时影响日龄。 */

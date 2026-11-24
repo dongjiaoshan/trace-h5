@@ -229,14 +229,14 @@ function twentyDayFixture(entry) {
   return source;
 }
 
-test('the twenty-day batch contains only the 2 pigs marketed before the backend correction, next to the three separate corrections', () => {
+test('the twenty-day batch contains only the 2 pigs marketed before the backend correction', () => {
   assert.equal(twentyDayCorrections.length, 2);
   assert.equal(twentyDayFixtures.length, 2);
   assert.deepEqual(
     twentyDayCorrections.map(({ earNo, recordedBirthDate }) => ({ earNo, recordedBirthDate })).sort((a, b) => a.earNo.localeCompare(b.earNo)),
     twentyDayFixtures.map(({ earNo, recordedBirthDate }) => ({ earNo, recordedBirthDate }))
   );
-  assert.equal(new Set(PIG_DISPLAY_CORRECTIONS.map((entry) => entry.earNo)).size, 5);
+  assert.equal(new Set(PIG_DISPLAY_CORRECTIONS.map((entry) => entry.earNo)).size, PIG_DISPLAY_CORRECTIONS.length);
   assert.ok(twentyDayCorrections.every((entry) => entry.marketingAgeRange === undefined));
   assert.ok(twentyDayCorrections.every((entry) => entry.correctEarDate === false));
   assert.deepEqual(
@@ -244,9 +244,29 @@ test('the twenty-day batch contains only the 2 pigs marketed before the backend 
     [
       { earNo: '01-01-2-251120-025', recordedBirthDate: '2025-11-20', addDays: 50, marketingAgeRange: { min: 366, max: 380 } },
       { earNo: '01-01-2-251120-024', recordedBirthDate: '2025-11-20', addDays: 50, marketingAgeRange: { min: 366, max: 380 } },
-      { earNo: '01-01-1-251206-006', recordedBirthDate: '2025-12-06', addDays: 65, marketingAgeRange: { min: 366, max: 380 } }
+      { earNo: '01-01-1-251206-006', recordedBirthDate: '2025-12-06', addDays: 65, marketingAgeRange: { min: 366, max: 380 } },
+      { earNo: '01-01-1-260106-001', recordedBirthDate: '2026-01-06', addDays: 53, marketingAgeRange: { min: 366, max: 380 } }
     ]
   );
+});
+
+test('the November 24 pig displays 375 days and the corrected ear number only in H5', () => {
+  const source = traceFixture();
+  Object.assign(source.pig, {
+    earNo: '01-01-1-260106-001',
+    birthDate: '2026-01-06',
+    marketDate: '2026-11-23 20:56:29',
+    receiveDate: '2026-11-24 02:48:22',
+    ageDays: 322
+  });
+
+  const before = structuredClone(source);
+  const corrected = correctPigDisplay(source);
+  assert.deepEqual(corrected.pig, { ...source.pig, earNo: '01-01-1-251114-001', birthDate: '2025-11-14', ageDays: 375 });
+  assert.equal(corrected.growthRecords[0].ageDays, 107);
+  assert.equal(corrected.medications[0].ageDays, 79);
+  assert.deepEqual(correctPigDisplay(corrected), corrected);
+  assert.deepEqual(source, before);
 });
 
 test('every twenty-day pig moves exactly 20 days, outside the 366 to 380 marketing age range', () => {
